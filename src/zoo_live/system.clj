@@ -14,7 +14,7 @@
                   (get env "REDIS")
                   "redis://127.0.0.1:6379/0")]
     {:redis-pub-sub {:pool {} 
-                     :listener {} 
+                     :listener nil
                      :spec {:uri redis-pub-sub}}
      :redis {:pool {} :spec {:uri redis}}
      :handler (r/routes)

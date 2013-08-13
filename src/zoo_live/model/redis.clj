@@ -6,7 +6,8 @@
 
 (defn connect!
   [opts]
-  (alter-var-root #'connection opts))
+  (alter-var-root #'connection (constantly opts)))
+
 
 (defmacro wcar* [& body] `(car/wcar connection ~@body))
 
