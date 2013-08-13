@@ -1,6 +1,7 @@
 (ns zoo-live.system
   (:require [zoo-live.web.routes :as r]
             [zoo-live.web.server :as s]
+            [zoo-live.model.postgres :as post]
             [zoo-live.model.redis-pub-sub :as rps]
             [zoo-live.model.redis :as red]))
 
@@ -29,6 +30,7 @@
                           [:redis-pub-sub :listener] 
                           rps/make-listener (:redis-pub-sub system))]
     (red/connect! (:redis system))
+    (post/connect! (:postgres system))
     (into system {:server server})))
 
 (defn stop

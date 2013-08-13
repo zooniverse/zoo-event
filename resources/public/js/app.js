@@ -40,12 +40,15 @@
   var points = []
 
   var updatePoints = function(error, classifications) {
-    if (error)
+    if (error) {
+      clearInterval(fetcher);
+      clearInterval(drawer);
       throw error;
+    }
    
     points = points.concat(classifications.map(function(c) {
-      var latlng = projection([c.location.result.longitude, 
-                               c.location.result.latitude]);
+      var latlng = projection([c.location.longitude, 
+                               c.location.latitude]);
       return latlng.concat(c.project);
     }));
   };
@@ -75,7 +78,7 @@
   };
 
   d3.json("/classifications/9", updatePoints);
-  setInterval(function() { d3.json('/classifications/9', updatePoints) }, 5000);
-  setInterval(drawPoints, 500);
+  var fetcher = setInterval(function() { d3.json('/classifications/9', updatePoints) }, 5000);
+  var drawer = setInterval(drawPoints, 500);
 
 }).call(this);

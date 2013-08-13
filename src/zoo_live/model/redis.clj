@@ -1,6 +1,6 @@
 (ns zoo-live.model.redis
   (:require [taoensso.carmine :as car]
-            [clj-http.client :as client]))
+            [zoo-live.model.postgres :as p]))
 
 (def connection {})
 
@@ -11,18 +11,15 @@
 
 (defmacro wcar* [& body] `(car/wcar connection ~@body))
 
-(defn get-location
-  [ip]
-  (first (:body (client/get (str "http://zoogeo.herokuapp.com/geocode/" ip) {:as :json}))))
-
 (defn save
   [classification]
   (let [id (wcar* (car/incr "id"))
-        location (get-location (:user_ip classification))]
+        location (first (p/find-ips (:user_ip classification)))
+        record (dissoc (merge classification 
+                              {:location location 
+                               :id id}) :user_ip)]
     (wcar*
-      (car/lpush "classifications"  (merge classification 
-                                           {:location location 
-                                            :id id}))
+      (car/lpush "classifications" record)
       (car/ltrim "classifications" 0 99))))
 
 (defn get-all
