@@ -7,12 +7,16 @@
 (defn system
   "Returns a new instance of the whole application"
   []
-  {:redis-pub-sub {:pool {} 
-                   :listener {} 
-                   :spec {:uri (get (System/getenv) "REDIS_PUB_SUB")}}
-   :redis {:pool {} :spec {:host "127.0.0.1" :port 6379}}
-   :handler (r/routes)
-   :port 8080})
+  (let [env (System/getenv) 
+        redis-pub-sub (or (get env "REDIS_PUB_SUB")
+                          "redis://127.0.0.1:6379/0")
+        redis (or (get env "REDIS"))]
+    {:redis-pub-sub {:pool {} 
+                     :listener {} 
+                     :spec {:uri redis-pub-sub}}
+     :redis {:pool {} :spec {:uri redis}}
+     :handler (r/routes)
+     :port 8080}))
 
 (defn start
   [system]
@@ -34,5 +38,5 @@
              {}))
 
 (defn -main
-  []
-  (start (system)))
+  [& [port]]
+  (start (merge (system) {:port (Integer. port)})))

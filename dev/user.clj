@@ -26,8 +26,10 @@
 
 (defn go
   "Inits and Starts"
-  []
+  [& [port]]
   (init)
+  (when port
+    (alter-var-root #'system merge {:port port}))
   (start))
 
 (defn reset []

@@ -76,3 +76,5 @@ get-all
 (reset)
 (start)
 (reset)
+(go)
+(go 3000)
