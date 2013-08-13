@@ -210,3 +210,10 @@ r/connection
 (e
 )
 (go)
+(reset)
+(stop)
+(go)
+(stop)
+(go)
+(stop)
+(go)

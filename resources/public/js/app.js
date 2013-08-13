@@ -1,8 +1,8 @@
 (function() {
-  var width = window.innerWidth * .95,
-    height = window.innerHeight * .95;
+  var width = 1620,
+    height = 1030;
 
-  var projection = d3.geo.mercator()
+  var projection = d3.geo.wagner6()
     .scale((width + 1) / 2 / Math.PI)
     .translate([width / 2, height / 2])
     .precision(.1);
@@ -37,32 +37,50 @@
   var group = svg.append('g')
     .attr('class', 'classifications')
 
-  var points = []
+  var points = [];
+  var users = [];
 
-  var updatePoints = function(error, classifications) {
+  var update = function(error, classifications) {
     if (error) {
       clearInterval(fetcher);
-      clearInterval(drawer);
       throw error;
     }
    
     points = points.concat(classifications.map(function(c) {
-      var latlng = projection([c.location.longitude, 
-                               c.location.latitude]);
-      return latlng.concat(c.project);
+      return projection([
+        c.location.longitude, 
+        c.location.latitude
+      ]).concat([c.project, c.id]);
     }));
+
+    users = users.concat(classifications.map(function(c) {
+      return {
+        country: c.location.country,
+        city: c.location.city,
+        user: c.user,
+        avatar: c.user_id,
+        project: c.project
+      }
+    }));
+
+    users = users.reduce(function(m, u) {
+      if (m.filter(function(mu) { return mu.avatar === u.avatar; }).length === 0)
+        return m.concat(u);
+      else
+        return m;
+    }, []);
   };
 
   var drawingPoints = [];
 
   var drawPoints = function() {
     if (drawingPoints.length === 1000)
-      drawingpoint.shift();
+      drawingPoints.shift();
 
     drawingPoints.push(points.pop());
 
     var dots = group.selectAll('circle')
-      .data(drawingPoints)
+      .data(drawingPoints, function(d) { return d[3]; });
 
     dots.enter().append('circle')
       .attr('cx', function(d) { return d[0]; })
@@ -77,8 +95,37 @@
     dots.exit().remove();
   };
 
-  d3.json("/classifications/9", updatePoints);
-  var fetcher = setInterval(function() { d3.json('/classifications/9', updatePoints) }, 5000);
-  var drawer = setInterval(drawPoints, 500);
+  var avatarURI = "http://zooniverse-avatars.s3.amazonaws.com/ouroboros/"
+  var usersList = d3.select('.classifiers ul');
+  this.defaultAvatar = function(el) {
+    var img = document.createElement('img')
+    img.src = src="http://zooniverse-avatars.s3.amazonaws.com/default_forum_avatar.png";
+    img.height = 50;
+    img.width = 50;
+    el.parentNode.replaceChild(img, el);
+  };
+
+  var drawUsers = function() {
+    var classifiers = usersList.selectAll('li')
+      .data(users.slice(0, 5), function(d) { return d.avatar; });
+
+    classifiers.enter().append('li')
+      .attr('class', 'classifiers')
+      .html(drawUser);
+
+    classifiers.exit().remove();
+
+    if (users.length > 5)
+      users.shift();
+  };
+
+  var drawUser = function(d) {
+    return '<img width="50" height="50" src="' + avatarURI + d.avatar + '" onerror="window.defaultAvatar(this)" /> <span><div class="username"> ' + d.user + '</div><div class="location">' + d.city + ', ' + d.country + '</div></span>'
+  };
+
+  d3.json("/classifications/9", update);
+  var fetcher = setInterval(function() { d3.json('/classifications/9', update) }, 5000);
+  var pointsDrawer = setInterval(drawPoints, 500);
+  var userDrawer = setInterval(drawUsers, 2000); 
 
 }).call(this);

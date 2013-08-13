@@ -23,7 +23,7 @@
 
 (defn- query-ip
   [ip]
-  (first (query* [(str "SELECT l.latitude, l.longitude FROM location l JOIN blocks b ON (l.locId=b.locId) WHERE b.endIpNum >= " ip " order by b.endIpNum limit 1")])))
+  (first (query* [(str "SELECT l.country, l.city, l.latitude, l.longitude FROM location l JOIN blocks b ON (l.locId=b.locId) WHERE b.endIpNum >= " ip " order by b.endIpNum limit 1")])))
 
 (defn find-ips
   [& ips]
