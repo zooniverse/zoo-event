@@ -34,14 +34,17 @@
       .attr("d", path); 
   });
 
-  var drawPoints = function(error, classifications) {
-    var points = classifications.map(function(c) {
-      return projection([c.location.result.longitude, 
-                        c.location.result.latitude]);
-    });
+  var group = svg.append('g')
+    .attr('class', 'classifications')
 
-    var group = svg.append('g')
-      .attr('class', 'classifications')
+  var points = []
+
+  var drawPoints = function(error, classifications) {
+    points = points.concat(classifications.map(function(c) {
+      return projection([c.location.result.longitude, 
+                         c.location.result.latitude,
+                         c.project]);
+    })).slice(0, 100);
 
     var dots = group.selectAll('circle')
       .data(points)
@@ -49,11 +52,17 @@
     dots.enter().append('circle')
       .attr('cx', function(d) { return d[0]; })
       .attr('cy', function(d) { return d[1]; })
-      .attr('r', 2)
-      .style('fill', 'red');
+      .attr('class', function(d) { return d[2]; })
+      .attr('r', 1)
+      .transition().duration(700)
+      .attr('r', 7)
+      .transition().duration(500)
+      .attr('r', 3);
+
+    dots.exit().remove();
   };
 
-  d3.json("/classifications", drawPoints);
-  setInterval(function() { d3.json('/classifications/10', drawPoints) }, 7500);
+  //d3.json("/classifications", drawPoints);
+  setInterval(function() { d3.json('/classifications/1', drawPoints) }, 1000);
 
 }).call(this);
