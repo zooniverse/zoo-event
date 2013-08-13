@@ -1,6 +1,6 @@
 (function() {
-  var width = window.innerWidth,
-    height = window.innerHeight;
+  var width = window.innerWidth * .95,
+    height = window.innerHeight * .95;
 
   var projection = d3.geo.mercator()
     .scale((width + 1) / 2 / Math.PI)
@@ -41,10 +41,10 @@
 
   var drawPoints = function(error, classifications) {
     points = points.concat(classifications.map(function(c) {
-      return projection([c.location.result.longitude, 
-                         c.location.result.latitude,
-                         c.project]);
-    })).slice(0, 100);
+      var latlng = projection([c.location.result.longitude, 
+                               c.location.result.latitude]);
+      return latlng.concat(c.project);
+    }));
 
     var dots = group.selectAll('circle')
       .data(points)
@@ -63,6 +63,6 @@
   };
 
   //d3.json("/classifications", drawPoints);
-  setInterval(function() { d3.json('/classifications/1', drawPoints) }, 1000);
+  setInterval(function() { d3.json('/classifications/0', drawPoints) }, 1000);
 
 }).call(this);
