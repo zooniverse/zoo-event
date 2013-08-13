@@ -9,7 +9,9 @@
                  [clj-http "0.7.6"]
                  [com.taoensso/carmine "2.2.0"]
                  [ring/ring-devel "1.2.0-RC1"]
-                 [ring/ring-jetty-adapter "1.2.0-RC1"]]
+                 [ring/ring-jetty-adapter "1.2.0-RC1"]
+                 [org.clojure/java.jdbc "0.3.0-alpha4"]
+                 [postgresql/postgresql "8.4-702.jdbc4"]]
   :profiles
   {:dev {:source-paths ["dev"]
          :dependencies [[ring-mock "0.1.5"]

@@ -39,22 +39,34 @@
 
   var points = []
 
-  var drawPoints = function(error, classifications) {
+  var updatePoints = function(error, classifications) {
+    if (error)
+      throw error;
+   
     points = points.concat(classifications.map(function(c) {
       var latlng = projection([c.location.result.longitude, 
                                c.location.result.latitude]);
       return latlng.concat(c.project);
     }));
+  };
+
+  var drawingPoints = [];
+
+  var drawPoints = function() {
+    if (drawingPoints.length === 1000)
+      drawingpoint.shift();
+
+    drawingPoints.push(points.pop());
 
     var dots = group.selectAll('circle')
-      .data(points)
+      .data(drawingPoints)
 
     dots.enter().append('circle')
       .attr('cx', function(d) { return d[0]; })
       .attr('cy', function(d) { return d[1]; })
       .attr('class', function(d) { return d[2]; })
       .attr('r', 1)
-      .transition().duration(700)
+      .transition().duration(200)
       .attr('r', 7)
       .transition().duration(500)
       .attr('r', 3);
@@ -62,7 +74,8 @@
     dots.exit().remove();
   };
 
-  //d3.json("/classifications", drawPoints);
-  setInterval(function() { d3.json('/classifications/0', drawPoints) }, 1000);
+  d3.json("/classifications/9", updatePoints);
+  setInterval(function() { d3.json('/classifications/9', updatePoints) }, 5000);
+  setInterval(drawPoints, 500);
 
 }).call(this);
