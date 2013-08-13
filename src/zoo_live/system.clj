@@ -10,7 +10,9 @@
   (let [env (System/getenv) 
         redis-pub-sub (or (get env "REDIS_PUB_SUB")
                           "redis://127.0.0.1:6379/0")
-        redis (or (get env "REDIS"))]
+        redis (or (get env "REDISTOGO_URL")
+                  (get env "REDIS")
+                  "redis://127.0.0.1:6379/0")]
     {:redis-pub-sub {:pool {} 
                      :listener {} 
                      :spec {:uri redis-pub-sub}}
