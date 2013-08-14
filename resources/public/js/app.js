@@ -123,7 +123,7 @@
     return '<img width="50" height="50" src="' + avatarURI + d.avatar + '" onerror="window.defaultAvatar(this)" /> <span><div class="username"> ' + d.user + '</div><div class="location">' + d.city + ', ' + d.country + '</div></span>'
   };
 
-  d3.json("/classifications/9", update);
+  d3.json("/classifications/99", update);
   var fetcher = setInterval(function() { d3.json('/classifications/9', update) }, 5000);
   var pointsDrawer = setInterval(drawPoints, 500);
   var userDrawer = setInterval(drawUsers, 2000); 
