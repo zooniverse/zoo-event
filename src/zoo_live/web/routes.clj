@@ -18,6 +18,7 @@
 (defn routes
   []
   (let [handler (cmpj/routes
+                  (GET "/pingdom" [] (resp-ok ""))
                   (GET "/classifications" [] (resp-ok (r/get-all)))
                   (GET "/classifications/:n" [n] (resp-ok (r/get-all n)))
                   (route/resources "/")
