@@ -5,169 +5,36 @@
 <meta charset="utf-8" />
 <title>Zooniverse Live!</title>
 <link href='http://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
-<style>
-  body {
-    margin: 0;
-    background: #18212d;
-    width: 1920px;
-    height: 1080px;
-  }
-
-  .map {
-    position: absolute;
-    top: 20px;
-    left: 200px;
-  }
-
-  .left {
-    font-family: 'Montserrat', sans-serif;
-    margin-top: 10px;
-    margin-left: 20px;
-  }
-
-  h2 {
-    margin-top: 0;
-    margin-bottom: 30px;
-    font-size: 16px;
-    color: #ff4040;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-
-  img.header {
-    margin-top: 50px;
-    margin-bottom: 60px;
-  }
-
-  .land {
-    fill: #000;
-  }
-
-  .boundary {
-    fill: none;
-  }
-
-  .graticule {
-    fill: none;
-  }
-
-  .project {
-    font-size: 24px;
-    color: #fff;
-    position: relative;
-    top: -5px;
-  }
-
-  ul {
-    margin-top: 0;
-  }
-
-  .classifiers ul {
-    list-style: none;
-    padding: 0
-  }
-
-  .classifiers ul:first-child {
-    margin-top: 0;
-  }
-
-  .classifiers ul li {
-    margin-top: 30px;
-  }
-
-  .classifiers ul li span {
-    display: inline-block;
-    position: relative;
-    top: -5px;
-  }
-
-  .location {
-    font-size: 14px;
-    color: #435f71; 
-  }
-
-  .username {
-    font-size: 24px;
-    color: white;
-  }
-
-  li {
-    font-size: 40px;
-  }
-
-  .serengeti {
-    color: yellow;
-  }
-
-  .galaxy-zoo {
-    color: purple;
-  }
-
-  .spacewarp {
-    color: blue;
-  }
-
-  .notes-from-nature {
-    color: #eee;
-  }
-
-  .planet-four {
-    color: red;
-  }
-
-  .others {
-    color: green;
-  }
-
-  circle {
-    fill: green;
-    stroke: #222;
-    stroke-width: .5px;
-    opacity: 50%;
-  }
-
-  circle.serengeti {
-    fill: yellow;
-  }
-
-  circle.spacewarp {
-    fill: blue;
-  }
-
-  circle.galaxy_zoo {
-    fill: purple;
-  }
-
-  circle.notes_from_nature {
-    fill: #eee;
-  }
-
-  circle.planet_four{
-    fill: red;
-  }
-</style>
+<link href="/css/style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-  <div class="left">
+  <header>
     <img class="header" src="img/zoo_logo.png" />
-    <div class="classifiers">
-      <h2>Recent Classifiers</h2>
-      <ul></ul>
-    </div>
+  </header>
+  <div id="map">
+    <svg></svg>
     <div class="legend">
       <h2>Project Legend</h2>
-      <ul>
+      <ul class="left">
         <li class="serengeti"><span class="project">Snapshot Serengeti</span></li>
         <li class="galaxy-zoo"><span class="project">Galaxy Zoo</span></li>
         <li class="planet-four"><span class="project">Planet Four</span></li>
+      </ul>
+      <ul class="right">
         <li class="spacewarp"><span class="project">SpaceWarps</span></li>
         <li class="notes-from-nature"><span class="project">Notes from Nature</span></li>
         <li class="others"><span class="project">Others</span></li>
       </ul>
     </div>
+    <div class="countries">
+      <h2>Top Countries</h2>
+      <ul></ul>
+    </div>
   </div>
-  <div class="map">
-    <svg></svg>
+  <div id="right">
+    <div class="classifiers">
+      <ul></ul>
+    </div>
   </div>
   <script src="http://d3js.org/topojson.v1.min.js" charset="utf-8"></script>
   <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
