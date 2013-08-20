@@ -17,7 +17,7 @@
     {:redis-pub-sub {:pool {} 
                      :listener nil
                      :spec {:uri redis-pub-sub}}
-     :postgres (get env "HEROKU_POSTGRESQL_PURPLE_URL")
+     :postgres (get env "DATABASE_URL")
      :redis {:pool {} :spec {:uri redis}}
      :handler (r/routes)
      :port 8080}))
