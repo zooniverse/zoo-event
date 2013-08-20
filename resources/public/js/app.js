@@ -51,9 +51,9 @@
       .data(countries.slice(0, 3), function(d) { return d[0]; })
 
     list.enter().append('li')
-      .html(function(d) { return d[0] + ': <span class="count">' + d[1] + '</span>'; });
+      .html(function(d) { return d[0] + ': <span class="count"></span>'; });
 
-    list.select('.count').text(function(d) { return d[1] });
+    list.select('.count').text(function(d) { return d[1].toLocaleString() });
 
     list.exit().remove();
   }
@@ -83,12 +83,15 @@
     }));
 
     users = users.reduce(function(m, u) {
-      if (typeof u.user === 'undefined')
+      if (typeof u.user === 'undefined') {
         return m
-      else if (m.filter(function(mu) { return mu.avatar === u.avatar; }).length === 0)
+      } else if (m.filter(function(mu) { return mu.avatar === u.avatar; }).length === 0) {
+        if (u.user.split('@').length > 1)
+          u.user = u.user.split('@')[0];
         return m.concat(u);
-      else
+      } else {
         return m;
+      }
     }, []);
   };
 
@@ -150,7 +153,8 @@
 
   var drawUser = function(d) {
     var imgHeight = Math.floor(window.innerHeight / 5);
-    return '<div class="image"><img src="' + d.subject + '" width="340" height="' + ((imgHeight > 340) ? '' : imgHeight) + '"></div>' + '<div class="user"><img width="50" height="50" src="' + avatarURI + d.avatar + '" onerror="window.defaultAvatar(this)" /> <span><div class="username"> ' + d.user + '</div><div class="location">' + ((d.city !== '') ? d.city + ', ' : '') + d.country + '</div></span></div>';
+    imgHeight = (imgHeight > 340) ? 340 : imgHeight;
+    return '<div class="image" style="height: ' + imgHeight + 'px;"><img src="' + d.subject + '" width="340" height="' + imgHeight + '"></div>' + '<div class="user"><img width="50" height="50" src="' + avatarURI + d.avatar + '" onerror="window.defaultAvatar(this)" /> <span><div class="username"> ' + d.user + '</div><div class="location">' + ((d.city !== '') ? d.city + ', ' : '') + d.country + '</div></span></div>';
   };
 
   d3.json("/classifications/99", update);
