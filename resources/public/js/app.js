@@ -1,4 +1,6 @@
 (function() {
+  var countryFetcher, fetcher, pointsDrawer, userDrawer;
+
   var width = window.innerWidth - 400,
     height = Math.floor(width * (9 / 16));
 
@@ -72,7 +74,15 @@
     }));
 
     users = users.concat(classifications.map(function(c) {
+      var subject = new Image;
+      subject.src = c.subject;
+      var avatar = new Image;
+      if(c.user_id) {
+        avatar.src = 'http://zooniverse-avatars.s3.amazonaws.com/ouroboros/' + c.user_id;
+      }
+
       return {
+        id: c.id,
         subject: c.subject,
         country: c.location.country,
         city: c.location.city,
@@ -84,10 +94,10 @@
 
     users = users.reduce(function(m, u) {
       if (typeof u.user === 'undefined') {
-        return m
-      } else if (m.filter(function(mu) { return mu.avatar === u.avatar; }).length === 0) {
-        if (u.user.split('@').length > 1)
-          u.user = u.user.split('@')[0];
+        u.user = 'not-logged-in';
+        return m.concat(u);
+      } else if (m.filter(function(mu) { return mu.id === u.id; }).length === 0) {
+        u.user = u.user.split('@')[0];
         return m.concat(u);
       } else {
         return m;
@@ -130,38 +140,60 @@
   };
 
   var drawUsers = function() {
+    var interval = 8000 * (1 / users.length)
+    interval = Math.max(interval, 250);
+    var transition = interval * 0.75;
+
     var scale = d3.scale.linear().domain([0, 5]).range([0, window.innerHeight])
     var classifiers = usersList.selectAll('li')
-      .data(users.slice(0, 5), function(d) { return d.avatar; });
+      .data(users.slice(0, 5), function(d) { return d.id; });
 
     classifiers.enter().append('li')
       .attr('class', 'classifiers')
       .style('top', function(d, i) { return scale(i + 1) + 'px'; })
       .html(drawUser);
 
-    classifiers.transition().duration(1900)
+    classifiers.transition().duration(transition)
       .style('top', function(d, i) { return scale(i) + "px"; });
 
     classifiers.exit()
-      .transition().duration(1900)
+      .transition().duration(transition)
       .style('top', function(d, i) { return scale(i - 1) + "px"; })
       .remove();
 
-    if (users.length > 5)
+    if (users.length > 5) {
       users.shift();
+    }
+
+    if(userDrawer) {
+      clearTimeout(userDrawer);
+    }
+
+    userDrawer = setTimeout(drawUsers, interval);
   };
 
   var drawUser = function(d) {
     var imgHeight = Math.floor(window.innerHeight / 5);
     imgHeight = (imgHeight > 340) ? 340 : imgHeight;
-    return '<div class="image" style="height: ' + imgHeight + 'px;"><img src="' + d.subject + '" width="340" height="' + imgHeight + '"></div>' + '<div class="user"><img width="50" height="50" src="' + avatarURI + d.avatar + '" onerror="window.defaultAvatar(this)" /> <span><div class="username"> ' + d.user + '</div><div class="location">' + ((d.city !== '') ? d.city + ', ' : '') + d.country + '</div></span></div>';
+    var avatarSrc = d.user_id ? avatarURI + d.avatar : 'http://zooniverse-avatars.s3.amazonaws.com/default_forum_avatar.png'
+
+    return '<div class="image" style="height: ' + imgHeight + 'px;">' +
+             '<img src="' + d.subject + '" width="340" height="' + imgHeight + '">' +
+           '</div>' +
+           '<div class="user">' +
+             '<img width="50" height="50" src="' + avatarSrc + '" onerror="window.defaultAvatar(this)" /> ' +
+             '<span>' +
+               '<div class="username"> ' + d.user + '</div>' +
+               '<div class="location">' + ((d.city !== '') ? d.city + ', ' : '') + d.country + '</div>' +
+             '</span>' +
+           '</div>';
   };
 
-  d3.json("/classifications/99", update);
+  d3.json("/classifications/9", update);
   d3.json("/countries", updateCountries);
-  var countryFetcher = setInterval(function() {d3.json("/countries", updateCountries);}, 10000);
-  var fetcher = setInterval(function() { d3.json('/classifications/9', update) }, 5000);
-  var pointsDrawer = setInterval(drawPoints, 500);
-  var userDrawer = setInterval(drawUsers, 2000); 
+  countryFetcher = setInterval(function() {d3.json("/countries", updateCountries);}, 10000);
+  fetcher = setInterval(function() { d3.json('/classifications/9', update) }, 2000);
+  pointsDrawer = setInterval(drawPoints, 500);
+  userDrawer = setTimeout(drawUsers, 1000);
 
 }).call(this);
