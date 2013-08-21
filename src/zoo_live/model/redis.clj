@@ -18,7 +18,7 @@
         location (first (p/find-ips (:user_ip classification)))
         country (:country location)
         today (now)
-        day-ago (minus today (days 1))
+        day-ago (minus today (days 2))
         date (str (month today) "-" (day today))
         prev-date (str (month day-ago) "-" (day day-ago))
         record (dissoc (merge classification 
