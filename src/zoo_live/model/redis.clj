@@ -1,5 +1,5 @@
 (ns zoo-live.model.redis
-  (:use [clj-time.core :only [day month now minus weeks]])
+  (:use [clj-time.core :only [day month now minus days]])
   (:require [taoensso.carmine :as car]
             [zoo-live.model.postgres :as p]))
 
@@ -18,9 +18,9 @@
         location (first (p/find-ips (:user_ip classification)))
         country (:country location)
         today (now)
-        week-ago (minus today (weeks 1))
+        day-ago (minus today (days 1))
         date (str (month today) "-" (day today))
-        prev-date (str (month week-ago) "-" (day week-ago))
+        prev-date (str (month day-ago) "-" (day day-ago))
         record (dissoc (merge classification 
                               {:location location 
                                :id id}) :user_ip)]
@@ -30,8 +30,8 @@
       (car/lpush "classifications" record)
       (car/ltrim "classifications" 0 99)
       (car/lpush (str "classifications-" date) record)
-      (if (= 1 (wcar* (car/exists (str "classifications-" week-ago))))
-        (car/del (str "classifications-" week-ago))))))
+      (if (= 1 (wcar* (car/exists (str "classifications-" prev-date))))
+        (car/del (str "classifications-" prev-date))))))
 
 (defn get-all
   ([]
