@@ -6,7 +6,7 @@
   else {
     width = window.innerWidth;
     document.getElementById('map').setAttribute('style', "margin-top: -100px;");
-    document.getElementsByClassName('countries')[0].setAttribute('style', "right: 0;");
+    document.getElementsByClassName('countries')[0].setAttribute('style', "right: 50px;");
   }
   height = Math.floor(width * (9 / 16));
 
@@ -116,7 +116,6 @@
   var drawPoints = function(interval) {
     return function() {
       interval = interval || 500;
-      console.log(interval);
       if (drawingPoints.length === 1000)
         drawingPoints.shift();
 
@@ -212,9 +211,17 @@
   } else {
     d3.json("/countries", updateCountries);
     d3.json("/classifications/date/" + location.hash.slice(1), function(error, result) {
-      console.log(result.length);
-      update(error, result);
-      drawPoints(100)();
+       points = points.concat(result.map(function(c) {
+          return projection([
+            c.location.longitude, 
+            c.location.latitude
+          ]).concat([c.project, c.id]);
+        }));
+      location.hash = "#ready";
+      var ev = document.addEventListener('keypress', function() {
+        document.removeEventListener('keypress', ev);
+        drawPoints(10)();
+      }, true);
     });
   }
 
