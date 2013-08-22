@@ -1,8 +1,14 @@
 (function() {
-  var countryFetcher, fetcher, pointsDrawer, userDrawer;
+  var countryFetcher, fetcher, pointsDrawer, userDrawer, width, height;
 
-  var width = window.innerWidth - 400,
-    height = Math.floor(width * (9 / 16));
+  if (location.hash === "")
+    width = window.innerWidth - 400;
+  else {
+    width = window.innerWidth;
+    document.getElementById('map').setAttribute('style', "margin-top: -100px;");
+    document.getElementsByClassName('countries')[0].setAttribute('style', "right: 0;");
+  }
+  height = Math.floor(width * (9 / 16));
 
   if (width < 480) {
     map = document.getElementById("map");
@@ -209,7 +215,6 @@
       console.log(result.length);
       update(error, result);
       drawPoints(100)();
-      drawUsers(100, true)();
     });
   }
 
