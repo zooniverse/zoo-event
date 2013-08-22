@@ -67,11 +67,6 @@
   }
 
   var update = function(error, classifications) {
-    if (error) {
-      clearInterval(fetcher);
-      throw error;
-    }
-   
     points = points.concat(classifications.map(function(c) {
       return projection([
         c.location.longitude, 
@@ -137,7 +132,7 @@
       dots.exit().remove();
 
       if (dots.length > 0) 
-        setTimeout(drawPoints(interval), interval);
+        pointsDrawer = setTimeout(drawPoints(interval), interval);
     };
   };
 
@@ -196,8 +191,7 @@
       if (userDrawer) 
         clearTimeout(userDrawer);
 
-      if (users.length > 0) 
-        userDrawer = setTimeout(drawUsers(setInterval, hideImg), (setInterval || interval));
+      userDrawer = setTimeout(drawUsers(setInterval, hideImg), (setInterval || interval));
     };
   };
 
