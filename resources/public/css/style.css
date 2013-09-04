@@ -201,3 +201,16 @@ circle.notes_from_nature {
 circle.planet_four{
   fill: red;
 }
+
+p {
+  color: white;
+  font-size: 9px;
+  position: absolute;
+  bottom: 0;
+  left: 30px;
+}
+
+p a {
+  color: teal; 
+  text-decoration: none;
+}

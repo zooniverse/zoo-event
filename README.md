@@ -28,3 +28,5 @@ You can specify the port it will run on and the URIs for both the main redis con
 ## License
 
 Copyright © 2013 Zooniverse. This software is available under the APL see COPYING.
+
+This product includes GeoLite data created by MaxMind, available from [http://www.maxmind.com](http://www.maxmind.com).
