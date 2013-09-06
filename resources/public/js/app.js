@@ -87,7 +87,6 @@
         subject: c.subject,
         country: c.location.country,
         city: c.location.city,
-        user: c.user,
         avatar: c.user_id,
         project: c.project
       }
@@ -158,7 +157,6 @@
                '<div class="user">' +
                  '<img width="50" height="50" src="' + avatarSrc + '" onerror="window.defaultAvatar(this)" /> ' +
                  '<span>' +
-                   '<div class="username"> ' + d.user + '</div>' +
                    '<div class="location">' + ((d.city !== '') ? d.city + ', ' : '') + d.country + '</div>' +
                  '</span>' +
                '</div>';

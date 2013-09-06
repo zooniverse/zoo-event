@@ -23,7 +23,9 @@
         prev-date (str (month day-ago) "-" (day day-ago))
         record (dissoc (merge classification 
                               {:location location 
-                               :id id}) :user_ip)]
+                               :id id}) 
+                       :user_ip
+                       :user)]
     (wcar*
       (car/sadd "countries" country)
       (car/incr country)
