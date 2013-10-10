@@ -6,23 +6,62 @@ body {
 }
 
 header {
-  margin-left: 50px
+  width: 100%;
+  margin-left: 50px;
+  margin-top: 50px;
+  margin-bottom: 60px;
+}
+
+header h3 {
+  color: white;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+h1 {
+  margin-top: 0;
+  color: white;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.time h1 {
+  width: 200px;
+}
+
+#left {
+  display: inline-block;
+  padding-left: 50px;
+  text-align: left;
+  position: absolute;
+  left: 0;
+  top: 200px;
 }
 
 #map {
-  float: left;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  margin-top: -50px;
+}
+
+#map svg {
   display: inline-block;
-  margin-left: 20px;
+}
+
+#bottom {
+  position: absolute;
+  width: 100%;
+  display: block;
 }
 
 #right {
-  height: 100%;
-  width: 340px;
   display: inline-block;
-  margin-left: 20px;
   position: absolute;
-  top: 0;
   right: 0;
+  top: 200px;
+  padding-right: 50px;
+  text-align: right;
 }
 
 h2 {
@@ -32,11 +71,6 @@ h2 {
   color: #ff4040;
   text-transform: uppercase;
   font-weight: 700;
-}
-
-img.header {
-  margin-top: 50px;
-  margin-bottom: 60px;
 }
 
 .land {
@@ -52,21 +86,12 @@ img.header {
 }
 
 .project {
-  font-size: 24px;
+  font-size: 18px;
   color: #fff;
-  position: relative;
-  top: -5px;
 }
 
 ul {
   margin-top: 0;
-}
-
-.countries { 
-  position: fixed;
-  right: 400px;
-  bottom: 0;
-  margin-left: 50px;
 }
 
 .countries ul {
@@ -75,15 +100,19 @@ ul {
   list-style: none;
 }
 
-.countries ul li { 
-  line-height: 50px;
+.countries ul li:first-child { 
+  font-size: 30px;
+}
+
+.countries ul li:nth-child(2n) {
   font-size: 24px;
 }
 
+.countries ul li:nth-child(3n) {
+  font-size: 18px;
+}
+
 .legend {
-  position: fixed;
-  bottom: 0;
-  margin-left: 50px;
   width: 100%;
 }
 
@@ -98,57 +127,6 @@ ul {
 
 .legend ul.right {
   float: left;
-}
-
-.classifiers {
-  height: inherit;
-}
-
-.classifiers ul {
-  height: inherit;
-  overflow: hidden;
-  list-style: none;
-  padding: 0;
-  position: relative;
-}
-
-.classifiers ul li {
-  width: 480px;
-  position: absolute;
-}
-
-.classifiers ul li span {
-  display: inline-block;
-  position: relative;
-  top: -5px;
-  z-index: 1;
-}
-
-.classifiers .image {
-  position: relative;
-  z-index: 1;
-}
-
-.classifiers .user {
-  position: relative;
-  z-index: 2;
-  background: rgba(50,50,50,0.5);
-  height: 50px;
-  top: -60px;
-}
-
-.location {
-  font-size: 14px;
-  color: white;
-}
-
-.username {
-  font-size: 24px;
-  color: white;
-}
-
-li {
-  font-size: 40px;
 }
 
 .serengeti {
@@ -173,6 +151,76 @@ li {
 
 .others {
   color: green;
+}
+
+.classification img {
+  width: inherit;
+  height: inherit;
+}
+
+.classification {
+  position: absolute;
+  border-radius: 5px;
+  box-sizing: border-box;
+  border: 2px solid;
+  text-align: center;
+  overflow: hidden;
+}
+
+.classification h2 {
+  font-weight: 400;
+  margin: 0;
+  font-size: 16px;
+  text-transform: uppercase;
+  color: black;
+}
+
+.classification.serengeti {
+  border-color: yellow;
+}
+
+.classification.galaxy-zoo {
+  border-color: purple;
+}
+
+.classification.spacewarp {
+  border-color: blue;
+}
+
+.classification.notes-from-nature {
+  border-color: #eee;
+}
+
+.classification.planet-four {
+  border-color: red;
+}
+
+.classification {
+  border-color: green;
+}
+
+.classification.serengeti h2 {
+  background: yellow;
+}
+
+.classification.galaxy-zoo h2 {
+  background: purple;
+}
+
+.classification.spacewarp h2 {
+  background: blue;
+}
+
+.classification.notes-from-nature h2 {
+  background: #eee;
+}
+
+.classification.planet-four h2 {
+  background: red;
+}
+
+.classification h2 {
+  background: green;
 }
 
 circle {
@@ -205,12 +253,22 @@ circle.planet_four{
 p {
   color: white;
   font-size: 9px;
-  position: absolute;
-  bottom: 0;
+  bottom: -5px;
   left: 30px;
+  position: absolute;
 }
 
 p a {
   color: teal; 
   text-decoration: none;
+}
+
+.top-tables ul {
+  list-style: none;
+  padding: 0;
+}
+
+.top-tables ul li {
+  color: white;
+  font-size: 30px;
 }

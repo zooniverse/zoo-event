@@ -24,8 +24,7 @@
         record (dissoc (merge classification 
                               {:location location 
                                :id id}) 
-                       :user_ip
-                       :user)]
+                       :user_ip)]
     (wcar*
       (car/sadd "countries" country)
       (car/incr country)

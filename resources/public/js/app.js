@@ -1,21 +1,9 @@
 (function() {
-  var countryFetcher, fetcher, pointsDrawer, userDrawer, width, height;
+  var countryFetcher, fetcher, pointsDrawer, userDrawer, width, height, namesDrawer;
+  var names = {};
 
-  if (location.hash === "")
-    width = window.innerWidth - 400;
-  else {
-    width = window.innerWidth;
-    document.getElementById('map').setAttribute('style', "margin-top: -100px;");
-    document.getElementsByClassName('countries')[0].setAttribute('style', "right: 50px;");
-  }
+  width = window.innerWidth - 400;
   height = Math.floor(width * (9 / 16));
-
-  if (width < 480) {
-    map = document.getElementById("map");
-    map.setAttribute("style", "float: left;");
-    width = 480;
-    height = Math.floor(width * (9 / 16));
-  }
 
   var projection = d3.geo.wagner6()
     .scale((width + 1) / 2 / Math.PI)
@@ -75,19 +63,17 @@
     }));
 
     users = users.concat(classifications.map(function(c) {
+      if (typeof names[c.user] !== 'undefined')
+        names[c.user] = names[c.user] + 1;
+
       var subject = new Image;
       subject.src = c.subject;
-      var avatar = new Image;
-      if(c.user_id) {
-        avatar.src = 'http://zooniverse-avatars.s3.amazonaws.com/ouroboros/' + c.user_id;
-      }
 
       return {
         id: c.id,
         subject: c.subject,
         country: c.location.country,
         city: c.location.city,
-        avatar: c.user_id,
         project: c.project
       }
     }));
@@ -106,6 +92,31 @@
   };
 
   var drawingPoints = [];
+
+  var drawNames = function() {
+    var namesForList = []
+    for(var key in names) {
+      namesForList.push([key, names[key]]);
+    }
+
+    namesForList = namesForList.sort(function(l, r) { 
+      if (l[1] < r[1])
+        return 1;
+      else if (l[1] > r[1])
+        return -1;
+      return 0;
+    });
+
+    d3.select('.top-tables ul').selectAll('li').remove()
+
+    var list = d3.select('.top-tables ul').selectAll('li')
+      .data(namesForList, function(d) { return d[0]; });
+
+    list.enter().append('li')
+      .text(function(d) { return d[0]; });
+
+
+  };
 
   var drawPoints = function(interval) {
     return function() {
@@ -135,55 +146,42 @@
     };
   };
 
-  var avatarURI = "http://zooniverse-avatars.s3.amazonaws.com/ouroboros/"
-  var usersList = d3.select('.classifiers ul');
-  this.defaultAvatar = function(el) {
-    var img = document.createElement('img')
-    img.src = src="http://zooniverse-avatars.s3.amazonaws.com/default_forum_avatar.png";
-    img.height = 50;
-    img.width = 50;
-    el.parentNode.replaceChild(img, el);
-  };
-
   var drawUsers = function(setInterval, hideImg) {
     var drawUser = function(d) {
-        var imgHeight = Math.floor(window.innerHeight / 5);
-        imgHeight = (imgHeight > 340) ? 340 : imgHeight;
-        var avatarSrc = d.user_id ? avatarURI + d.avatar : 'http://zooniverse-avatars.s3.amazonaws.com/default_forum_avatar.png'
-
-        return '<div class="image" style="height: ' + imgHeight + 'px;">' +
-                 ((hideImg) ? '' : '<img src="' + d.subject + '" width="340" height="' + imgHeight + '">') +
-               '</div>' +
-               '<div class="user">' +
-                 '<img width="50" height="50" src="' + avatarSrc + '" onerror="window.defaultAvatar(this)" /> ' +
-                 '<span>' +
-                   '<div class="location">' + ((d.city !== '') ? d.city + ', ' : '') + d.country + '</div>' +
-                 '</span>' +
-               '</div>';
+      return '<h2>' + d.city + ((d.city) ? ", " : "") + d.country + '</h2>' +
+        '<img src="' + d.subject + '"></div>';
       };
 
     return function() {
       var interval = Math.max(8000 * (1 / users.length), 250);
       var transition = (setInterval || interval) * 0.75;
 
-      var scale = d3.scale.linear().domain([0, 5]).range([0, window.innerHeight])
-      var classifiers = usersList.selectAll('li')
-        .data(users.slice(0, 5), function(d) { return d.id; });
+      var scale = d3.scale.linear().domain([0, 7])
+        .range([-150, window.innerWidth + 150])
+      var width = scale(1) - scale(0) - 20,
+        height = Math.floor(width / 2);
 
-      classifiers.enter().append('li')
-        .attr('class', 'classifiers')
-        .style('top', function(d, i) { return scale(i + 1) + 'px'; })
+      d3.select("#bottom").style('bottom', height + 20 + 'px');
+
+      var classifiers = d3.select('.classifiers').selectAll('span')
+        .data(users.slice(0, 7), function(d) { return d.id; });
+
+      classifiers.enter().append('span')
+        .attr('class', function(d) { return "classification " + d.project; })
+        .style('width', width + 'px')
+        .style('height', height + 'px')
+        .style('left', function(d, i) { return scale(i + 1) + 'px'; })
         .html(drawUser);
 
       classifiers.transition().duration(transition)
-        .style('top', function(d, i) { return scale(i) + "px"; });
+        .style('left', function(d, i) { return scale(i) + "px"; });
 
       classifiers.exit()
         .transition().duration(transition)
-        .style('top', function(d, i) { return scale(i - 1) + "px"; })
+        .style('left', function(d, i) { return scale(i - 1) + "px"; })
         .remove();
 
-      if (users.length > 5)
+      if (users.length > 7)
         users.shift();
 
       if (userDrawer) 
@@ -193,28 +191,24 @@
     };
   };
 
-    if (location.hash === "") {
-    d3.json("/classifications/9", update);
-    d3.json("/countries", updateCountries);
-    countryFetcher = setInterval(function() {d3.json("/countries", updateCountries);}, 10000);
-    fetcher = setInterval(function() { d3.json('/classifications/9', update) }, 2000);
-    pointsDrawer = setTimeout(drawPoints(), 500);
-    userDrawer = setTimeout(drawUsers(), 1000);
+  drawTime = function() {
+    var timeEl = document.querySelector('.time h1');
+    timeEl.innerHTML = moment().format('lll');
+    setTimeout(drawTime, 60000);
+  };
+
+  if (location.hash === "") {
+    document.querySelector('.top-tables').setAttribute('style', 'display: none;');
   } else {
-    d3.json("/countries", updateCountries);
-    d3.json("/classifications/date/" + location.hash.slice(1), function(error, result) {
-       points = points.concat(result.map(function(c) {
-          return projection([
-            c.location.longitude, 
-            c.location.latitude
-          ]).concat([c.project, c.id]);
-        }));
-      location.hash = "#ready";
-      var ev = document.addEventListener('keypress', function() {
-        document.removeEventListener('keypress', ev);
-        drawPoints(10)();
-      }, true);
-    });
+    location.hash.slice(2).split(',').forEach(function (n) { names[n] = 0; });
+    namesDrawer = setInterval(drawNames, 2000);
   }
+  d3.json("/classifications/13", update);
+  d3.json("/countries", updateCountries);
+  countryFetcher = setInterval(function() {d3.json("/countries", updateCountries);}, 10000);
+  fetcher = setInterval(function() { d3.json('/classifications/13', update) }, 2000);
+  pointsDrawer = setTimeout(drawPoints(), 500);
+  userDrawer = setTimeout(drawUsers(), 1000);
+  drawTime();
 
 }).call(this);
