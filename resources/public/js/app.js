@@ -25,6 +25,7 @@
       .attr({
         d: function(d) {return path(d)},
         id: function(d) {return d.properties.name},
+        fill: "url(#img)",
         "class": "land"
       });
      
