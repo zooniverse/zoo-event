@@ -68,7 +68,7 @@ h2 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 16px;
-  color: #ff4040;
+  color: #499fda;
   text-transform: uppercase;
   font-weight: 700;
 }
@@ -126,27 +126,31 @@ ul {
 }
 
 .serengeti {
-  color: yellow;
+  color: #37a65a;
 }
 
 .galaxy-zoo {
-  color: purple;
+  color: #1c72af;
 }
 
 .spacewarp {
-  color: blue;
+  color: #da3ad2;
+}
+
+.plankton {
+  color: #fe5454;
 }
 
 .notes-from-nature {
-  color: #eee;
+  color: #b9d117;
 }
 
 .planet-four {
-  color: red;
+  color: #fe7e00;
 }
 
 .others {
-  color: green;
+  color: #0391f3;
 }
 
 .classification img {
@@ -172,78 +176,90 @@ ul {
 }
 
 .classification.serengeti {
-  border-color: yellow;
+  border-color: #37a65a;
 }
 
 .classification.galaxy-zoo {
-  border-color: purple;
+  border-color: #1c72af;
+}
+
+.classification.plankton {
+  color: #fe5454;
 }
 
 .classification.spacewarp {
-  border-color: blue;
+  border-color: #da3ad2;
 }
 
 .classification.notes-from-nature {
-  border-color: #eee;
+  border-color: #b9d117;
 }
 
 .classification.planet-four {
-  border-color: red;
+  border-color: #fe7e00;
 }
 
 .classification {
-  border-color: green;
+  border-color: #0391f3;
 }
 
 .classification.serengeti h2 {
-  background: yellow;
+  background: #37a65a;
 }
 
 .classification.galaxy-zoo h2 {
-  background: purple;
+  background: #1c72af;
 }
 
 .classification.spacewarp h2 {
-  background: blue;
+  background: #da3ad2;
+}
+
+.classification.plankton h2 {
+  : #fe5454;
 }
 
 .classification.notes-from-nature h2 {
-  background: #eee;
+  background: #b9d117;
 }
 
 .classification.planet-four h2 {
-  background: red;
+  background: #fe7e00;
 }
 
 .classification h2 {
-  background: green;
+  background: #0391f3;
 }
 
 circle {
-  fill: green;
+  fill: #0391f3;
   stroke: #222;
   stroke-width: .5px;
   opacity: 50%;
 }
 
 circle.serengeti {
-  fill: yellow;
+  fill: #37a65a;
 }
 
 circle.spacewarp {
-  fill: blue;
+  fill: #da3ad2;
 }
 
 circle.galaxy_zoo {
-  fill: purple;
+  fill: #1c72af;
 }
 
 circle.notes_from_nature {
-  fill: #eee;
+  fill: #b9d117;
+}
+
+circle.plankton {
+  fill: #fe5454;
 }
 
 circle.planet_four{
-  fill: red;
+  fill: #fe7e00;
 }
 
 p {
