@@ -1,6 +1,7 @@
 (ns zoo-live.model.redis
   (:use [clj-time.core :only [day month now minus days]])
   (:require [taoensso.carmine :as car]
+            [clj-http.client :as http]
             [zoo-live.model.postgres :as p]))
 
 (def connection {})
@@ -11,6 +12,22 @@
 
 
 (defmacro wcar* [& body] `(car/wcar connection ~@body))
+
+(defn save-cpm
+  []
+  (let [cpm (wcar* (car/get "zoo-live:cpm"))]
+    (if cpm
+      {:value cpm}
+      (let [cpm (-> "https://rpm.newrelic.com/public/charts/dmjm5GoMgAW/data.json?tw[dur]=last_30_minutes"
+                    (http/get {:as :json})
+                    (get-in [:body :series])
+                    first
+                    :data
+                    last
+                    :y)]
+        (wcar* (car/set "zoo-live:cpm" cpm)
+               (car/expire "zoo-live:cpm" 60))
+        {:value cpm}))))
 
 (defn save
   [classification]

@@ -7,6 +7,7 @@
                  [compojure "1.1.5"]
                  [ring/ring-json "0.2.0"]
                  [clj-time "0.6.0"]
+                 [clj-http "0.7.7"]
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [com.taoensso/carmine "2.2.0"]
                  [ring/ring-devel "1.2.0-RC1"]

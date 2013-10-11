@@ -23,6 +23,7 @@
                   (GET "/classifications" [] (resp-ok (r/get-all)))
                   (GET "/classifications/:n" [n] (resp-ok (r/get-all n)))
                   (GET "/classifications/date/:date" [date] (resp-ok (r/get-date date)))
+                  (GET "/cpm" [] (resp-ok (r/save-cpm)))
                   (route/resources "/")
                   (route/not-found "Not Found"))]
     (-> (wrap-json-response handler)

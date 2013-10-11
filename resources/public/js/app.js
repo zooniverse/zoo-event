@@ -1,5 +1,5 @@
 (function() {
-  var countryFetcher, fetcher, pointsDrawer, userDrawer, width, height, namesDrawer;
+  var countryFetcher, fetcher, pointsDrawer, userDrawer, width, height, namesDrawer, cpmDrawer;
   var names = {};
 
   width = window.innerWidth - 400;
@@ -114,8 +114,13 @@
 
     list.enter().append('li')
       .text(function(d) { return d[0]; });
+  };
 
-
+  var drawCPM = function() {
+    d3.json("/cpm", function(response) {
+      d3.select('.cpm h1').text(response.value);
+      cpmDrawer = setTimeout(drawCPM, 10000);
+    });
   };
 
   var drawPoints = function(interval) {
@@ -209,6 +214,6 @@
   fetcher = setInterval(function() { d3.json('/classifications/13', update) }, 2000);
   pointsDrawer = setTimeout(drawPoints(), 500);
   userDrawer = setTimeout(drawUsers(), 1000);
+  drawCPM();
   drawTime();
-
 }).call(this);
