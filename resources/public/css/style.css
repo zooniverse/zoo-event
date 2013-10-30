@@ -179,7 +179,7 @@ ul {
   border-color: #37a65a;
 }
 
-.classification.galaxy-zoo {
+.classification.galaxy_zoo {
   border-color: #1c72af;
 }
 
@@ -191,11 +191,11 @@ ul {
   border-color: #da3ad2;
 }
 
-.classification.notes-from-nature {
+.classification.notes_from_nature {
   border-color: #b9d117;
 }
 
-.classification.planet-four {
+.classification.planet_four {
   border-color: #fe7e00;
 }
 
@@ -207,7 +207,7 @@ ul {
   background: #37a65a;
 }
 
-.classification.galaxy-zoo h2 {
+.classification.galaxy_zoo h2 {
   background: #1c72af;
 }
 
@@ -219,11 +219,11 @@ ul {
   : #fe5454;
 }
 
-.classification.notes-from-nature h2 {
+.classification.notes_from_nature h2 {
   background: #b9d117;
 }
 
-.classification.planet-four h2 {
+.classification.planet_four h2 {
   background: #fe7e00;
 }
 
