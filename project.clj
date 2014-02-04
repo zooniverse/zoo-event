@@ -9,6 +9,7 @@
                  [http-kit "2.1.16"]
                  [clj-time "0.6.0"]
                  [clj-http "0.7.7"]
+                 [clj-kafka "0.1.2-0.8"]
                  [org.clojure/core.match "0.2.1"]
                  [org.clojure/java.jdbc "0.3.0-alpha4"]
                  [postgresql/postgresql "8.4-702.jdbc4"]]

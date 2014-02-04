@@ -13,7 +13,8 @@
                           "redis://127.0.0.1:6379/0")
         redis (or (get env "REDISTOGO_URL")
                   (get env "REDIS")
-                  "redis://127.0.0.1:6379/0")]
+                  "redis://127.0.0.1:6379/0")
+        zookeeper "33.33.33.10:2181"]
     {:redis-pub-sub {:pool {} 
                      :listener nil
                      :spec {:uri redis-pub-sub}}
