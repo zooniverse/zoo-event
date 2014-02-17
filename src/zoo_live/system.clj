@@ -1,36 +1,22 @@
 (ns zoo-live.system
   (:require [zoo-live.web.routes :as r]
             [zoo-live.web.server :as s]
-            [zoo-live.model.postgres :as post]
-            [zoo-live.model.redis-pub-sub :as rps]
-            [zoo-live.model.redis :as red]))
+            [zoo-live.model.postgres :as post]))
 
 (defn system
   "Returns a new instance of the whole application"
   []
-  (let [env (System/getenv) 
-        redis-pub-sub (or (get env "REDIS_PUB_SUB")
-                          "redis://127.0.0.1:6379/0")
-        redis (or (get env "REDISTOGO_URL")
-                  (get env "REDIS")
-                  "redis://127.0.0.1:6379/0")
-        zookeeper "33.33.33.10:2181"]
-    {:redis-pub-sub {:pool {} 
-                     :listener nil
-                     :spec {:uri redis-pub-sub}}
-     :postgres (get env "DATABASE_URL")
-     :redis {:pool {} :spec {:uri redis}}
-     :handler (r/routes)
+  (let [env (System/getenv) ]
+    {:postgres (or (get env "DATABASE_URL") "postgres://localhost:5433/events")
+     :handler r/routes
+     :zookeeper (or (get env "ZOOKEEPER_CLUSTER") "33.33.33.10:2181") 
      :port 8080}))
 
 (defn start
   [system]
-  (let [server (s/create (:handler system)
-                         :port (:port system))
-        system (update-in system 
-                          [:redis-pub-sub :listener] 
-                          rps/make-listener (:redis-pub-sub system))]
-    (red/connect! (:redis system))
+  (let [system (update-in system [:handler] apply [system])
+        server (s/create (:handler system)
+                         :port (:port system))]
     (post/connect! (:postgres system))
     (into system {:server server})))
 
@@ -38,10 +24,7 @@
   [system]
   (when (:server system)
     (s/stop (:server system)))
-  (rps/stop (:redis-pub-sub system))
-  (update-in (dissoc system :server)
-             [:redis-pub-sub :listener]
-             {}))
+  (dissoc system :server))
 
 (defn -main
   [& [port]]
