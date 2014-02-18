@@ -6,6 +6,10 @@
 (defn- filter-from-params
   [params])
 
+(defn- kafka-value-to-string
+  [msg]
+  (apply str (map char (:value msg))))
+
 (defn stream-response
   [config {:keys [project type] :as ps}]
   (let [param-filter (filter-from-params (dissoc ps 
@@ -13,14 +17,12 @@
                                                  :type 
                                                  :from))
         kafka-config {"zookeeper.connect" (:zookeeper config)
-                      "group.id" "zoo-live.1"
+                      "group.id" "zoo-live.10"
                       "auto.offset.reset" "smallest"
-                      "auto.commit.enable" "true"}
-        topic (str "events_" type "_" project)]
-    (println topic)
-    (with-resource [c (consumer kafka-config)]
-      shutdown
-      (take 2 (messages c [topic])))))
+                      "auto.commit.enable" "false"}
+        topic (str "events_" type "_" project)
+        consumer (consumer kafka-config)]
+    [consumer (map kafka-value-to-string (messages consumer [topic]))]))
 
 (defn response
   [config params]
