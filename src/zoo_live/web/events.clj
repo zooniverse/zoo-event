@@ -8,7 +8,7 @@
 
 (defn- kafka-value-to-string
   [msg]
-  (apply str (map char (:value msg))))
+  (str (apply str (map char (:value msg))) "\n"))
 
 (defn stream-response
   [config {:keys [project type] :as ps}]
@@ -17,7 +17,7 @@
                                                  :type 
                                                  :from))
         kafka-config {"zookeeper.connect" (:zookeeper config)
-                      "group.id" "zoo-live.10"
+                      "group.id" "zoo-live.2"
                       "auto.offset.reset" "smallest"
                       "auto.commit.enable" "false"}
         topic (str "events_" type "_" project)

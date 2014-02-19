@@ -8,8 +8,9 @@
             [ring.middleware.json :refer [wrap-json-response]]))
 
 (defn resp-ok
-  [body]
+  [body & [content-type]]
   {:status 200
+   :headers {"Content-Type" (or content-type "application/json")}
    :body body})
 
 (defn wrap-dir-index
@@ -21,10 +22,11 @@
   [config type project {:keys [params headers] :as req}]
   (let [[c msgs] (ev/stream-response config params)] 
     (with-channel req channel
+      (send! channel (resp-ok "start") false)
       (on-close channel (fn [status] (println c) (shutdown c)))
       (doseq [m msgs]
         (println m)
-        (send! channel m false)))) 
+        (send! channel (resp-ok m) false)))) 
 
   (comment (match 
              [(headers "Content-Type")]
