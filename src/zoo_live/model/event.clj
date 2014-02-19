@@ -21,9 +21,8 @@
     (-> (create-entity (keyword (str "events_" type "_" project)))
         (database postgres))))
 
-(defn- date-between
-  [w from to]
-  (assoc w :created_at [between from to]))
+(defn- date-between [w from to]
+  (assoc w :created_at ['between from to]))
 
 (defn- params-to-where
   [w [k v]]
@@ -36,6 +35,6 @@
 
 (defn query-from-params
   [ent params]
-  (let [where-clause (reduce params-to-where {} params)] )
-  (select ent
-          (where where-clause)))
+  (let [where-clause (reduce params-to-where {} params)] 
+    (select ent
+            (where where-clause))))
