@@ -8,7 +8,7 @@
                  [clj-kafka "0.1.2-0.8"]
                  [org.clojure/core.match "0.2.1"]
                  [org.clojure/java.jdbc "0.3.0-alpha4"]
-                 [korma "0.3.0-rc5"]
+                 [korma "0.3.0-RC5"]
                  [postgresql/postgresql "8.4-702.jdbc4"]]
   :profiles
   {:dev {:source-paths ["dev"]

@@ -1,6 +1,6 @@
 (ns zoo-live.model.event
   (require [korma.db :as kdb]
-           [koram.core :refer :all]
+           [korma.core :refer :all]
            [clojure.string :as str]))
 
 (defn uri-to-db-map
@@ -19,8 +19,7 @@
   (let [postgres (kdb/postgres 
                    (if (string? postgres) (uri-to-db-map postgres) postgres))]
     (-> (create-entity (keyword (str "events_" type "_" project)))
-        (database postgres)
-        (transform ids-to-uri))))
+        (database postgres))))
 
 (defn- date-between
   [w from to]
