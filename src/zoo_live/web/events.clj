@@ -1,14 +1,18 @@
 (ns zoo-live.web.events
   (:require [zoo-live.model.event :as e]
             [clj-kafka.core :refer :all]
+            [cheshire.core :refer [parse-string generate-string]]
             [clj-kafka.consumer.zk :refer :all]))
 
 (defn- filter-from-params
-  [params])
+  [keys])
 
-(defn- kafka-value-to-string
+(defn- kafka-json-string-to-map
   [msg]
-  (str (apply str (map char (:value msg))) "\n"))
+  (->> (:value msg)
+       (map char)
+       (apply str)
+       parse-string))
 
 (defn stream-response
   [config {:keys [project type] :as ps}]
@@ -19,10 +23,14 @@
         kafka-config {"zookeeper.connect" (:zookeeper config)
                       "group.id" "zoo-live.2"
                       "auto.offset.reset" "smallest"
-                      "auto.commit.enable" "false"}
+                      "auto.commit.enable" "true"}
         topic (str "events_" type "_" project)
-        consumer (consumer kafka-config)]
-    [consumer (map kafka-value-to-string (messages consumer [topic]))]))
+        consumer (consumer kafka-config)
+        msgs (->> (messages consumer [topic])
+                  (map kafka-json-string-to-map)
+                  (filter param-filter)
+                  (map generate-string))]
+    [consumer msgs]))
 
 (defn response
   [config params]
