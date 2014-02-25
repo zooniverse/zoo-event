@@ -5,6 +5,7 @@
             [zoo-live.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
+            [pg-json.core :refer :all]
             [compojure.core :refer [GET]]
             [org.httpkit.server :refer [send! with-channel on-close]]
             [clj-kafka.consumer.zk :refer :all]))
@@ -12,8 +13,9 @@
 (defn- ent
   "Creates Korma Entity from event type and project"
   [{:keys [postgres]} type project]
-  (-> (create-entity (keyword (str "events_" type "_" project)))
-      (database postgres)))
+  (-> (create-entity (str "events_" type "_" project))
+      (database postgres)
+      (transform (fn [obj] (update-in obj [:data] from-json-column)))))
 
 (defn- date-between [w from to]
   (assoc w :created_at ['between from to]))
@@ -24,15 +26,17 @@
     (and (contains? w :created_at) (= k :from)) (date-between w v (:created_at w))
     (and (contains? w :created_at) (= k :to)) (date-between w v (:created_at w))
     (= k :from) (assoc w :created_at [> v])
-    (= k :to) (assoc w :create [< v])
+    (= k :to) (assoc w :created_at [< v])
     true (assoc w k v)))
 
 (defn query-from-params
-  [ent params]
-  (println ent)
-  (let [where-clause (reduce params-to-where {} params)] 
+  [ent {:keys [page per_page] :as params :or {page 1 per_page 10}}]
+  (let [where-clause (reduce params-to-where {} (dissoc params :page :per_page))] 
+    (println ent)
     (select ent
-            (where where-clause))))
+            (where where-clause)
+            (limit per_page)
+            (offset (* (- page 1) per_page)))))
 
 (defn- kafka-config
   [zk]
@@ -94,6 +98,7 @@
 (defn handle-request
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
+    (println req)
     (cond
       (= (headers "accept") stream-mime) (streaming-response msgs req)
       (= (headers "accept") app-mime) (resp-ok (db-response db-ent (:params req)))

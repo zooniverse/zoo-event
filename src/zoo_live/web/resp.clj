@@ -11,7 +11,7 @@
 
 (defn resp-bad-request
   []
-  {:status 401
+  {:status 400
    :headers {"Content-Type" app-mime}
    :body {"status" "Bad Request"}})
  

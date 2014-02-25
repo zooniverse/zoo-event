@@ -6,6 +6,7 @@
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.16"]
                  [clj-kafka "0.1.2-0.8"]
+                 [pg-json "0.1.0-SNAPSHOT"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [org.clojure/math.combinatorics "0.0.7"]
                  [org.clojure/java.jdbc "0.3.0-alpha4"]
