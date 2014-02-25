@@ -5,10 +5,15 @@
             [zoo-live.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
+            [clj-time.coerce :refer [to-sql-date]]
             [pg-json.core :refer :all]
             [compojure.core :refer [GET]]
             [org.httpkit.server :refer [send! with-channel on-close]]
             [clj-kafka.consumer.zk :refer :all]))
+
+(defn filter-user-data
+  [ev]
+  (dissoc ev :user_name :user_ip))
 
 (defn- ent
   "Creates Korma Entity from event type and project"
@@ -20,19 +25,24 @@
 (defn- date-between [w from to]
   (assoc w :created_at ['between from to]))
 
+(def get-date (comp second :created_at))
+
 (defn- params-to-where
   [w [k v]]
   (cond
-    (and (contains? w :created_at) (= k :from)) (date-between w v (:created_at w))
-    (and (contains? w :created_at) (= k :to)) (date-between w v (:created_at w))
-    (= k :from) (assoc w :created_at [> v])
-    (= k :to) (assoc w :created_at [< v])
+    (and (contains? w :created_at) (= k :from)) (date-between w (get-date w) (to-sql-date v))
+    (and (contains? w :created_at) (= k :to)) (date-between w (to-sql-date v) (get-date w))
+    (= k :from) (assoc w :created_at ['> (to-sql-date v)])
+    (= k :to) (assoc w :created_at ['< (to-sql-date v)])
+    (= k :female) (assoc w :female ['> v])
+    (= k :male) (assoc w :male ['> v])
     true (assoc w k v)))
 
 (defn query-from-params
-  [ent {:keys [page per_page] :as params :or {page 1 per_page 10}}]
-  (let [where-clause (reduce params-to-where {} (dissoc params :page :per_page))] 
-    (println ent)
+  [ent {:keys [page per_page] :as params :or {page "1" per_page "10"}}]
+  (let [where-clause (reduce params-to-where {} (dissoc params :page :per_page))
+        page (Integer/parseInt page)
+        per_page (Integer/parseInt per_page)]
     (select ent
             (where where-clause)
             (limit per_page)
@@ -44,20 +54,6 @@
    "group.id" "zoo-live"
    "auto.offset.reset" "largest"
    "auto.commit.enable" "true"})
-
-(defn- filter-from-params
-  [{:keys [gender country city]}]
-  (let [gender-fn (when (or (= "f" gender) (= "m" gender)) 
-                    (fn [msg] (= gender (:gender msg))))
-        country-fn (when country
-                     (fn [msg] (= country (:country_code msg))))
-        city-fn (when city
-                  (fn [msg] (= city (:city msg))))
-        filters (filter (comp not nil?) [gender-fn country-fn city ])]
-    (reduce (fn [m-fn n-fn] 
-              (fn [msg] (and (m-fn msg) (n-fn msg)))) 
-            (fn [msg] true) 
-            filters)))
 
 (defn- kafka-json-string-to-map
   [msg]
@@ -76,14 +72,15 @@
     (pub channel (fn [_] true))))
 
 (defn db-response
-  [ent params]
-  (query-from-params ent params))
+  [ent params & [mime]]
+  (resp-ok (mapv filter-user-data (query-from-params ent params)) mime))
 
 (defn- streaming-response
   [msgs {:keys [params] :as req}]
   (let [in-chan (chan)
         out-chan (->> (sub msgs true in-chan)  
                       (map< kafka-json-string-to-map)
+                      (map< filter-user-data)
                       (map< (comp #(str % "\n") generate-string)))]
     (with-channel req channel
       (send! channel (resp-ok (<!! out-chan) stream-mime) false)
@@ -98,11 +95,10 @@
 (defn handle-request
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
-    (println req)
     (cond
       (= (headers "accept") stream-mime) (streaming-response msgs req)
-      (= (headers "accept") app-mime) (resp-ok (db-response db-ent (:params req)))
-      (= (headers "accept") "application/json") (resp-ok (db-response db-ent (:params req)) "application/json")
+      (= (headers "accept") app-mime) (db-response db-ent (:params req))
+      (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
       true (resp-bad-request))))
 
 (defn event-routes
