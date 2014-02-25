@@ -1,7 +1,6 @@
 (ns zoo-live.events
   (:require [clj-kafka.core :refer [with-resource]]
             [cheshire.core :refer [parse-string generate-string]]
-            [clojure.core.match :refer [match]]
             [clojure.core.async :refer [go <! <!! filter< map< pub sub chan close! go-loop >!]]
             [zoo-live.web.resp :refer :all]
             [korma.core :refer :all]
@@ -30,6 +29,7 @@
 
 (defn query-from-params
   [ent params]
+  (println ent)
   (let [where-clause (reduce params-to-where {} params)] 
     (select ent
             (where where-clause))))
@@ -94,12 +94,11 @@
 (defn handle-request
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
-    (match 
-      [(headers "accept")]
-      [mime] (streaming-response msgs req)
-      [app-mime] (resp-ok (db-response db-ent (:params req)))
-      ["application/json"] (resp-ok (db-response config (:params req)) "application/json")
-      [_] (resp-bad-request))))
+    (cond
+      (= (headers "accept") stream-mime) (streaming-response msgs req)
+      (= (headers "accept") app-mime) (resp-ok (db-response db-ent (:params req)))
+      (= (headers "accept") "application/json") (resp-ok (db-response db-ent (:params req)) "application/json")
+      true (resp-bad-request))))
 
 (defn event-routes
   [config [type project]]
