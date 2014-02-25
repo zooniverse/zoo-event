@@ -2,7 +2,7 @@
   (:require [clj-kafka.core :refer [with-resource]]
             [cheshire.core :refer [parse-string generate-string]]
             [clojure.core.match :refer [match]]
-            [clojure.core.async :refer [go <! filter< map< dropping-buffer chan close! go-loop >!]]
+            [clojure.core.async :refer [go <! <!! filter< map< pub sub chan close! go-loop >!]]
             [zoo-live.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
@@ -30,7 +30,8 @@
 
 (defn query-from-params
   [ent params]
-  (let [where-clause (reduce params-to-where {} params)] (select ent
+  (let [where-clause (reduce params-to-where {} params)] 
+    (select ent
             (where where-clause))))
 
 (defn- kafka-config
@@ -63,8 +64,11 @@
 (defn kafka-stream
   [zk type project]
   (let [conf (kafka-config zk) 
-        topic (str "events_" type "_" project)]
-    (messages (consumer conf) [topic])))
+        topic (str "events_" type "_" project)
+        msgs (messages (consumer conf) [topic]) 
+        channel (chan)]
+    (go (doseq [m msgs] (>! channel m)))
+    (pub channel (fn [_] true))))
 
 (defn db-response
   [ent params]
@@ -72,22 +76,19 @@
 
 (defn- streaming-response
   [msgs {:keys [params] :as req}]
-  (let [in-chan (chan (dropping-buffer 100))
-        out-chan (map< generate-string (map< kafka-json-string-to-map in-chan))]
-    (future (doseq [m msgs] (println m) (>! in-chan m)))
+  (let [in-chan (chan)
+        out-chan (->> (sub msgs true in-chan)  
+                      (map< kafka-json-string-to-map)
+                      (map< (comp #(str % "\n") generate-string)))]
     (with-channel req channel
-      (send! channel (resp-ok "" stream-mime) false)
-      (on-close channel (fn [status] (close! in-chan) (close! out-chan)))
-      (go-loop []
-               (println "Here")
-               (if-let [m (<! out-chan)] 
-                 
-                 (do (println m)
-                     (send! channel (resp-ok m stream-mime) false)
-                     ))
-               
-                     (recur)      
-               ))))
+      (send! channel (resp-ok (<!! out-chan) stream-mime) false)
+      (let [writer (go-loop [msg (<! out-chan)]
+                            (send! channel (resp-ok msg stream-mime) false)
+                            (recur (<! out-chan)))]
+        (on-close channel (fn [status] 
+                            (close! writer) 
+                            (close! in-chan)
+                            (close! out-chan)))))))
 
 (defn handle-request
   [msgs db-ent type project]
@@ -101,7 +102,6 @@
 
 (defn event-routes
   [config [type project]]
-  (println type project)
   (let [msgs (kafka-stream (:zookeeper config) type project)
         db-ent (ent config type project)]
     (GET (str "/events/" type "/" project) [:as req] (handle-request msgs db-ent type project))))
