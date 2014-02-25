@@ -58,7 +58,8 @@
 (defn- kafka-json-string-to-map
   [msg]
   (->> (:value msg)
-       (map char) (apply str)
+       (map #(char (bit-and % 255))) 
+       (apply str)
        parse-string))
 
 (defn kafka-stream
