@@ -1,6 +1,7 @@
 (defproject zoo-live "0.2.0-SNAPSHOT"
   :description "Live Zooniverse Classifications"
   :url "http://github.com/edpaget/zoo-live"
+  :main zoo-live.system
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [compojure "1.1.5"]
                  [ring/ring-json "0.2.0"]

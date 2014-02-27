@@ -3,7 +3,8 @@
             [zoo-live.web.server :as s]
             [korma.db :as kdb]
             [clojure.string :as str]
-            [zoo-live.model.postgres :as post]))
+            [zoo-live.model.postgres :as post])
+  (:gen-class :main true))
 
 (defn- uri-to-db-map
   [uri]
