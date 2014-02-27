@@ -46,6 +46,7 @@
     (select ent
             (where where-clause)
             (limit per_page)
+            (order :created_at :DESC)
             (offset (* (- page 1) per_page)))))
 
 (defn- kafka-config
