@@ -50,5 +50,6 @@
   (dissoc system :server))
 
 (defn -main
-  [& [port]]
-  (start (merge (system) {:port (Integer. port)})))
+  [& [conf]]
+  (let [sys (if conf (merge (system) (read-string (slurp conf))) (system))] 
+    (start sys)))
