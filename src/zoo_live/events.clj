@@ -63,7 +63,7 @@
        (apply str)
        parse-string))
 
-(defn kafka-stream
+(defn- kafka-stream
   [zk type project]
   (let [conf (kafka-config zk) 
         topic (str "events_" type "_" project)
@@ -72,7 +72,19 @@
     (go (doseq [m msgs] (>! channel m)))
     (pub channel (fn [_] true))))
 
-(defn db-response
+(defn- filter-map
+  [ev [k t]]
+  (cond 
+    (vector? t) ((first t) (k ev) (second t))
+    true (= (k ev) t)))
+
+(defn- filter-stream
+  [params]
+  (let [filter-map (reduce params-to-where {} (dissoc params :from :to :page :per_page))]
+    (fn [ev]
+      (every? (partial filter-test ev) filter-map))))
+
+(defn- db-response
   [ent params & [mime]]
   (resp-ok (mapv filter-user-data (query-from-params ent params)) mime))
 
@@ -81,6 +93,7 @@
   (let [in-chan (chan)
         out-chan (->> (sub msgs true in-chan)  
                       (map< kafka-json-string-to-map)
+                      (filter< (filter-stream params))
                       (map< filter-user-data)
                       (map< (comp #(str % "\n") generate-string)))]
     (with-channel req channel
@@ -93,7 +106,7 @@
                             (close! in-chan)
                             (close! out-chan)))))))
 
-(defn handle-request
+(defn- handle-request
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
     (cond
@@ -106,4 +119,4 @@
   [config [type project]]
   (let [msgs (kafka-stream (:zookeeper config) type project)
         db-ent (ent config type project)]
-    (GET (str "/events/" type "/" project) [:as req] (handle-request msgs db-ent type project))))
+    (GET (str "/" type "/" project) [:as req] (handle-request msgs db-ent type project))))
