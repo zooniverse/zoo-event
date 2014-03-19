@@ -1,6 +1,5 @@
 (ns zoo-live.web.routes
-  (:require [compojure.core :as cmpj :refer [OPTIONS GET POST context]]
-            [compojure.route :as route]
+  (:require [compojure.core :as cmpj]
             [compojure.handler :refer [api]]
             [zoo-live.events :as ev]
             [clj-time.format :as f]

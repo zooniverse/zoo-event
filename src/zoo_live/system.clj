@@ -3,7 +3,8 @@
             [zoo-live.web.server :as s]
             [korma.db :as kdb]
             [clojure.string :as str]
-            [zoo-live.model.postgres :as post])
+            [zoo-live.model.postgres :as post]
+            [zoo-live.model.kafka :as k])
   (:gen-class :main true))
 
 (defn- uri-to-db-map
@@ -38,6 +39,7 @@
 (defn start
   [system]
   (let [system (update-in system [:postgres] db-connection)
+        system (assoc system :stream (k/kafka-stream (:zookeeper system)))
         system (update-in system [:handler] apply [system])
         server (s/create (:handler system)
                          :port (:port system))]

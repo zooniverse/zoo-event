@@ -1,4 +1,4 @@
-(defproject zoo-live "0.2.0-SNAPSHOT"
+(defproject zoo-live "0.3.0-SNAPSHOT"
   :description "Live Zooniverse Classifications"
   :url "http://github.com/edpaget/zoo-live"
   :main zoo-live.system

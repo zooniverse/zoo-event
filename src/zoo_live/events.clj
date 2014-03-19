@@ -1,15 +1,14 @@
 (ns zoo-live.events
   (:require [clj-kafka.core :refer [with-resource]]
             [cheshire.core :refer [parse-string generate-string]]
-            [clojure.core.async :refer [go <! <!! filter< map< pub sub chan close! go-loop >!]]
+            [clojure.core.async :refer [go <! <!! filter< map< sub chan close! go-loop >!]]
             [zoo-live.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
             [clj-time.coerce :refer [to-sql-date]]
             [pg-json.core :refer :all]
             [compojure.core :refer [GET]]
-            [org.httpkit.server :refer [send! with-channel on-close]]
-            [clj-kafka.consumer.zk :refer :all]))
+            [org.httpkit.server :refer [send! with-channel on-close]]))
 
 (defn filter-user-data
   [ev]
@@ -49,28 +48,9 @@
             (order :created_at :DESC)
             (offset (* (- page 1) per_page)))))
 
-(defn- kafka-config
-  [zk]
-  {"zookeeper.connect" zk 
-   "group.id" "zoo-live"
-   "auto.offset.reset" "largest"
-   "auto.commit.enable" "true"})
-
-(defn- kafka-json-string-to-map
-  [msg]
-  (->> (:value msg)
-       (map #(char (bit-and % 255))) 
-       (apply str)
-       parse-string))
-
-(defn- kafka-stream
-  [zk type project]
-  (let [conf (kafka-config zk) 
-        topic (str "events_" type "_" project)
-        msgs (messages (consumer conf) [topic]) 
-        channel (chan)]
-    (go (doseq [m msgs] (>! channel m)))
-    (pub channel (fn [_] true))))
+(defn db-response
+  [ent params & [mime]]
+  (resp-ok (mapv filter-user-data (query-from-params ent params)) mime))
 
 (defn- filter-map
   [ev [k t]]
@@ -84,15 +64,11 @@
     (fn [ev]
       (every? (partial filter-test ev) filter-map))))
 
-(defn- db-response
-  [ent params & [mime]]
-  (resp-ok (mapv filter-user-data (query-from-params ent params)) mime))
-
 (defn- streaming-response
-  [msgs {:keys [params] :as req}]
+  [msgs type project {:keys [params] :as req}]
   (let [in-chan (chan)
-        out-chan (->> (sub msgs true in-chan)  
-                      (map< kafka-json-string-to-map)
+        out-chan (->> (sub msgs (str type "-" project) in-chan)  
+                      (map< #(get % "event"))
                       (filter< (filter-stream params))
                       (map< filter-user-data)
                       (map< (comp #(str % "\n") generate-string)))]
@@ -110,13 +86,13 @@
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
     (cond
-      (= (headers "accept") stream-mime) (streaming-response msgs req)
+      (= (headers "accept") stream-mime) (streaming-response msgs type project req)
       (= (headers "accept") app-mime) (db-response db-ent (:params req))
       (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
       true (resp-bad-request))))
 
 (defn event-routes
   [config [type project]]
-  (let [msgs (kafka-stream (:zookeeper config) type project)
+  (let [msgs (:stream config) 
         db-ent (ent config type project)]
     (GET (str "/" type "/" project) [:as req] (handle-request msgs db-ent type project))))
