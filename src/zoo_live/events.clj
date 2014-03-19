@@ -52,7 +52,7 @@
   [ent params & [mime]]
   (resp-ok (mapv filter-user-data (query-from-params ent params)) mime))
 
-(defn- filter-map
+(defn- filter-test
   [ev [k t]]
   (cond 
     (vector? t) ((first t) (k ev) (second t))
