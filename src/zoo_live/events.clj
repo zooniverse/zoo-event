@@ -68,7 +68,7 @@
   [msgs type project {:keys [params] :as req}]
   (let [in-chan (chan)
         out-chan (->> (sub msgs (str type "-" project) in-chan)  
-                      (map< #(get % "event"))
+                      (map< #(get % :event))
                       (filter< (filter-stream params))
                       (map< filter-user-data)
                       (map< (comp #(str % "\n") generate-string)))]

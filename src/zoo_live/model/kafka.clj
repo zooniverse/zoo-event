@@ -12,10 +12,10 @@
 
 (defn- kafka-json-string-to-map
   [msg]
-  (->> (:value msg)
-       (map #(char (bit-and % 255))) 
-       (apply str)
-       parse-string))
+  (parse-string (->> (:value msg)
+                     (map #(char (bit-and % 255))) 
+                     (apply str))
+                true))
 
 (defn kafka-stream
   [zk]
