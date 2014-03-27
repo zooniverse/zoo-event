@@ -7,7 +7,7 @@
   [zk]
   {"zookeeper.connect" zk 
    "group.id" "zoo-live"
-   "auto.offset.reset" "largest"
+   "auto.offset.reset" "smallest"
    "auto.commit.enable" "true"})
 
 (defn- kafka-json-string-to-map
@@ -23,4 +23,4 @@
         msgs (messages (consumer conf) ["events"]) 
         channel (chan)]
     (go (doseq [m msgs] (>! channel (kafka-json-string-to-map m))))
-    (pub channel (fn [{:strs [type project]}] (str type "-" project)))))
+    (pub channel (fn [{:keys [type project]}] (str type "-" project)))))
