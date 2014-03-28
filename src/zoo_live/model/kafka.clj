@@ -20,7 +20,7 @@
 (defn kafka-stream
   [zk]
   (let [conf (kafka-config zk) 
-        msgs (messages (consumer conf) ["events"]) 
+        msgs (messages (consumer conf) "events") 
         channel (chan)]
     (go (doseq [m msgs] (>! channel (kafka-json-string-to-map m))))
     (pub channel (fn [{:keys [type project]}] (str type "-" project)))))
