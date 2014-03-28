@@ -29,9 +29,9 @@
   "Returns a new instance of the whole application"
   []
   (let [env (System/getenv) ]
-    {:postgres (or (get env "DATABASE_URL") "postgres://storm:storm@localhost:5433/events")
+    {:postgres ""
      :handler r/routes
-     :zookeeper (or (get env "ZOOKEEPER_CLUSTER") "33.33.33.10:2181") 
+     :zookeeper ""
      :port 8080
      :projects ["andromeda"
                 "asteroid"

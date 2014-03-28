@@ -12,7 +12,7 @@ RUN apt-get install -y -q openjdk-7-jre-headless supervisor
 RUN mkdir -p /opt/zoo-events
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ADD conf/conf-prod.edn /opt/zoo-events/conf.edn
-ADD target/zoo-live-0.4.0-SNAPSHOT-standalone.jar /opt/zoo-events/zoo-events.jar
+ADD target/zoo-live-0.4.1-SNAPSHOT-standalone.jar /opt/zoo-events/zoo-events.jar
 
 EXPOSE 8080
 
