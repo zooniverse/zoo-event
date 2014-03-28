@@ -33,8 +33,30 @@
      :handler r/routes
      :zookeeper (or (get env "ZOOKEEPER_CLUSTER") "33.33.33.10:2181") 
      :port 8080
-     :projects ["galaxy_zoo" "wise"]
-     :types ["classifications" "posts"]}))
+     :projects ["andromeda"
+                "asteroid"
+                "bat_detective"
+                "cancer_cells"
+                "cancer_gene_runner"
+                "condor"
+                "cyclone_center"
+                "galaxy_zoo" 
+                "leaf"
+                "m83"
+                "milky_way"
+                "notes_from_nature"
+                "penguin"
+                "planet_four"
+                "plankton"
+                "radio"
+                "sea_floor"
+                "serengeti"
+                "spacewarp"
+                "sunspot"
+                "war_diary"
+                "wise"
+                "worms"]
+     :types ["classifications"]}))
 
 (defn start
   [system]

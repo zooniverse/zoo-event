@@ -1,4 +1,4 @@
-(defproject zoo-live "0.3.2-SNAPSHOT"
+(defproject zoo-live "0.4.0-SNAPSHOT"
   :description "Live Zooniverse Classifications"
   :url "http://github.com/edpaget/zoo-live"
   :main zoo-live.system
@@ -6,7 +6,7 @@
                  [compojure "1.1.5"]
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.16"]
-                 [clj-kafka "0.1.2-0.8"]
+                 [clj-kafka "0.2.0-0.8"]
                  [clj-time "0.6.0"]
                  [pg-json "0.1.0-SNAPSHOT"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
