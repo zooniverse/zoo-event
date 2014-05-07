@@ -1,29 +1,10 @@
 (ns zoo-event.system
   (:require [zoo-event.web.routes :as r]
             [zoo-event.web.server :as s]
-            [korma.db :as kdb]
             [clojure.string :as str]
             [zoo-event.model.postgres :as post]
             [zoo-event.model.kafka :as k])
   (:gen-class :main true))
-
-(defn- uri-to-db-map
-  [uri]
-  (let [uri (java.net.URI. uri)
-        [username password] (str/split (.getUserInfo uri) #":")]
-    {:db (apply str (drop 1 (.getPath uri)))
-     :user username
-     :password password
-     :host (.getHost uri)
-     :port (.getPort uri)}))
-
-(defn- db-connection
-  [postgres]
-  (let [conn (kdb/create-db
-               (kdb/postgres 
-                 (if (string? postgres) (uri-to-db-map postgres) postgres)))]
-    (kdb/default-connection conn)
-    conn))
 
 (defn system
   "Returns a new instance of the whole application"

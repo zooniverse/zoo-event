@@ -1,35 +1,23 @@
 (ns user
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str]
-            [clojure.pprint :refer (pprint)]
-            [clojure.repl :refer :all]
-            [clojure.test :as test]
-            [clojure.tools.namespace.repl :refer (refresh refresh-all)]
-            [zoo-live.system :as system]))
+  (:require [com.stuartsierra.component :as component]
+            [clojure.tools.namespace.repl :refer (refresh)]
+            [zoo-event.system :as app]))
 
 (def system nil)
 
-(defn init
-  "Constructs Dev System"
-  []
-  (alter-var-root #'system (constantly (system/system))))
+(defn init []
+  (alter-var-root #'system
+                  (constantly (app/example-system {:host "dbhost.com" :port 123}))))
 
-(defn start
-  "Starts Dev System"
-  []
-  (alter-var-root #'system system/start))
+(defn start []
+  (alter-var-root #'system component/start))
 
-(defn stop
-  "Stops Dev System"
-  []
-  (alter-var-root #'system (fn [s] (when s (system/stop s)))))
+(defn stop []
+  (alter-var-root #'system
+                  (fn [s] (when s (component/stop s)))))
 
-(defn go
-  "Inits and Starts"
-  [& [port]]
+(defn go []
   (init)
-  (when port
-    (alter-var-root #'system merge {:port port}))
   (start))
 
 (defn reset []
