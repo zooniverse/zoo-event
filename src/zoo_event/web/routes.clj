@@ -1,9 +1,9 @@
-(ns zoo-live.web.routes
+(ns zoo-event.web.routes
   (:require [compojure.core :as cmpj]
             [compojure.handler :refer [api]]
-            [zoo-live.events :as ev]
+            [zoo-event.events :as ev]
             [clj-time.format :as f]
-            [zoo-live.web.resp :refer :all]
+            [zoo-event.web.resp :refer :all]
             [clojure.math.combinatorics :refer [cartesian-product]]
             [ring.middleware.json :refer [wrap-json-response]]))
 

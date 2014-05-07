@@ -1,4 +1,4 @@
-(ns zoo-live.web.resp)
+(ns zoo-event.web.resp)
 
 (def stream-mime "application/vnd.zooevents.stream.v1+json")
 (def app-mime "application/vnd.zooevents.v1+json")

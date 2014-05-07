@@ -1,4 +1,4 @@
-(ns zoo-live.model.kafka
+(ns zoo-event.model.kafka
   (:require [clj-kafka.consumer.zk :refer :all]
             [clojure.core.async :refer [>! chan pub go]]
             [cheshire.core :refer [parse-string]]))
@@ -6,7 +6,7 @@
 (defn- kafka-config
   [zk]
   {"zookeeper.connect" zk 
-   "group.id" "zoo-live"
+   "group.id" "zoo-event"
    "auto.offset.reset" "smallest"
    "auto.commit.enable" "true"})
 

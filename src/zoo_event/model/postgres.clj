@@ -1,4 +1,4 @@
-(ns zoo-live.model.postgres
+(ns zoo-event.model.postgres
   (:require [clojure.java.jdbc :as j]
             [clojure.string :refer [split]] 
             [clojure.java.jdbc.sql :as s]))

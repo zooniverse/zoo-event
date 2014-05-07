@@ -1,4 +1,4 @@
-(ns zoo-live.web.server
+(ns zoo-event.web.server
   (:require [org.httpkit.server :refer [run-server]]))
 
 (defn create
