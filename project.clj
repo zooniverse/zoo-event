@@ -11,7 +11,7 @@
                  [clj-kafka "0.2.4-0.8"]
                  [clj-time "0.6.0"]
                  [com.stuartsierra/component "0.2.1"]
-                 [pg-json "0.2.0"]
+                 [pg-json "0.2.1"]
                  [org.clojure/core.async "0.1.301.0-deb34a-alpha"]
                  [org.clojure/java.jdbc "0.3.3"]
                  [korma "0.3.1"]
