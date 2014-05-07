@@ -17,9 +17,11 @@
   [conn-map]
   (db/create-db (db/postgres conn-map)))
 
+(defn- db-log-name 
+  [{:keys [db-name host port]}]
+  (str db-name " at " host ":" port))
+
 (defrecord Database [host port db-name user pass connection]
-  (db-log-name [component]
-    (str db-name " at " host ":" port))
   component/Lifecycle
   (start [component]
     (if connection 
@@ -36,3 +38,7 @@
       (do (log/info (str "Closing connection to " (db-log-name)))
           (.close connection)
           (dissoc component :connection)))))
+
+(defn new-database
+  [jdbc-uri]
+  (map->database (uri-to-db-map jdbc-uri)))

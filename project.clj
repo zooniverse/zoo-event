@@ -3,8 +3,8 @@
   :url "http://github.com/zooniverse/zoo-events"
   :license {:name "Apache Public License v2"
             :url "http://www.apache.org/licenses/LICENSE-2.0.txt"}
-  :main zoo-event.system
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [org.clojure/tools.logging "0.2.6"]
                  [compojure "1.1.5"]
                  [ring/ring-json "0.3.1"]
                  [http-kit "2.1.16"]
