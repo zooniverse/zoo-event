@@ -21,6 +21,6 @@
   [zk]
   (let [conf (kafka-config zk) 
         channel (chan)]
-    (go (doseq [m (messages (consumer conf) "events")] (>! channel (kafka-json-string-to-map m))))
-    (println "Here")
+    (go (doseq [m (messages (consumer conf) "events")] 
+          (>! channel (kafka-json-string-to-map m))))
     (pub channel (fn [{:keys [type project]}] (str type "-" project)))))

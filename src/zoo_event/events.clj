@@ -1,8 +1,8 @@
-(ns zoo-live.events
+(ns zoo-event.events
   (:require [clj-kafka.core :refer [with-resource]]
             [cheshire.core :refer [parse-string generate-string]]
             [clojure.core.async :refer [go <! <!! filter< map< sub chan close! go-loop >!]]
-            [zoo-live.web.resp :refer :all]
+            [zoo-event.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
             [clj-time.coerce :refer [to-sql-date]]

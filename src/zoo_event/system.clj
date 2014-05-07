@@ -1,10 +1,10 @@
-(ns zoo-live.system
-  (:require [zoo-live.web.routes :as r]
-            [zoo-live.web.server :as s]
+(ns zoo-event.system
+  (:require [zoo-event.web.routes :as r]
+            [zoo-event.web.server :as s]
             [korma.db :as kdb]
             [clojure.string :as str]
-            [zoo-live.model.postgres :as post]
-            [zoo-live.model.kafka :as k])
+            [zoo-event.model.postgres :as post]
+            [zoo-event.model.kafka :as k])
   (:gen-class :main true))
 
 (defn- uri-to-db-map
