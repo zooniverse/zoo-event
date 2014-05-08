@@ -8,6 +8,7 @@
                  [compojure "1.1.5"]
                  [ring/ring-json "0.3.1"]
                  [http-kit "2.1.16"]
+                 [clj-http "0.9.1"]
                  [clj-kafka "0.2.4-0.8"]
                  [clj-time "0.6.0"]
                  [com.stuartsierra/component "0.2.1"]
