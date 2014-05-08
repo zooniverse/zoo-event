@@ -1,6 +1,7 @@
 (ns zoo-event.component.kafka
   (:require [clj-kafka.consumer.zk :as kafka]
             [clojure.tools.logging :as log]
+            [clojure.core.async :refer [>! chan pub go close!]]
             [com.stuartsierra.component :as component]  
             [cheshire.core :refer [parse-string]]))
 
@@ -8,7 +9,7 @@
   [zk group-id]
   {"zookeeper.connect" zk 
    "group.id" group-id 
-   "auto.offset.reset" "smallest"
+   "auto.offset.reset" "largest"
    "auto.commit.enable" "true"})
 
 (defn- kafka-json-string-to-map
@@ -20,8 +21,10 @@
 
 (defn- kafka-stream
   [consumer topic threads]
-  (let [msgs (map kafka-json-string-to-map (kafka/messages consumer topic :threads threads))]
-    (fn [] msgs)))
+  (let [msgs (kafka/messages consumer topic :threads threads)
+        kchan (chan)]
+    (go (doseq [m msgs] (>! kchan (kafka-json-string-to-map m))))
+    (pub kchan (fn [{:keys [project type]}] (str type "/" project)))))
 
 (defrecord Kafka [zk-connect group-id topic threads consumer messages]
   component/Lifecycle
@@ -38,6 +41,7 @@
       component
       (do (log/info "Closing connection to Kafka topic: " topic)
           (kafka/shutdown consumer)
+          (close! messages)
           (assoc component :messages nil :consumer nil)))))
 
 (defn new-kafka

@@ -1,7 +1,7 @@
 (ns zoo-event.events
   (:require [clj-kafka.core :refer [with-resource]]
             [cheshire.core :refer [parse-string generate-string]]
-            [clojure.core.async :refer [go <! <!! filter< map< sub chan close! go-loop >!]]
+            [clojure.core.async :refer [go <! <!! map< sub chan close! go-loop >!]]
             [zoo-event.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
@@ -36,11 +36,17 @@
 
 (defn- streaming-response
   [msgs type project req]
-  (let [stream (map process-event msgs)]
+  (let [inchan (sub msgs (str type "/" project) (chan)) 
+        stream (map< process-event inchan)]
     (with-channel req channel
-      (send! channel (resp-ok "Stream Start" stream-mime) false)
-      (doseq [m stream] 
-        (send! channel (resp-ok m stream-mime) false)))))
+      (send! channel (resp-ok "Stream Start\n" stream-mime) false)
+      (let [writer (go-loop [msg (<! stream)]
+                            (send! channel (resp-ok msg stream-mime) false)
+                            (recur (<! stream)))]
+        (on-close channel (fn [status] 
+                            (close! writer)
+                            (close! stream)
+                            (close! inchan)))))))
 
 (defn- handle-request
   [msgs db-ent type project]
@@ -54,13 +60,8 @@
       (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
       true (resp-bad-request))))
 
-(defn- by-type-project
-  [t p]
-  (fn [{:keys [type project]}]
-    (and (= type t) (= project p))))
-
 (defn event-route
   [type project db kafka]
-  (let [msgs (filter (by-type-project type project) ((:messages kafka))) 
+  (let [msgs (:messages kafka) 
         db-ent (ent db type project)]
     (GET (str "/" type "/" project) [:as req] (handle-request msgs db-ent type project))))
