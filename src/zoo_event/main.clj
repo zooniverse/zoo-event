@@ -1,7 +1,8 @@
 (ns zoo-event.main
   (:require [zoo-event.system :refer [system]]
             [com.stuartsierra.component :refer [start stop]]
-            [clojure.edn :refer [read-string]]))
+            [clojure.edn :refer [read-string]])
+  (:gen-class true :main))
 
 (defn -main
   [& [conf]]

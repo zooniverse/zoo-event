@@ -1,18 +1,16 @@
 # DOCKER-VERSION 0.9.0
-# VERSION 0.2
+# VERSION 0.3
 
 FROM ubuntu:12.04
 MAINTAINER Edward Paget <ed@zooniverse.org>
 
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
 RUN apt-get update 
-RUN apt-get upgrade -y
 
-RUN apt-get install -y -q openjdk-7-jre-headless supervisor
-RUN mkdir -p /opt/zoo-events
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -q openjdk-7-jre-headless supervisor
+RUN mkdir -p /opt/zoo-event-1.0.0-SNAPSHOT
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-ADD conf/conf-prod.edn /opt/zoo-events/conf.edn
-ADD target/zoo-live-0.4.1-SNAPSHOT-standalone.jar /opt/zoo-events/zoo-events.jar
+ADD conf/conf-prod.edn /opt/zoo-event-1.0.0-SNAPSHOT/conf.edn
+ADD target/zoo-event-1.0.0-SNAPSHOT-standalone.jar /opt/zoo-event-1.0.0-SNAPSHOT/zoo-event.jar
 
 EXPOSE 8080
 

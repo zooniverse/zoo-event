@@ -20,5 +20,6 @@
   :profiles
   {:dev {:source-paths ["dev"]
          :dependencies [[ring-mock "0.1.5"]
-                        [org.clojure/tools.namespace "0.2.3"]]}}
+                        [org.clojure/tools.namespace "0.2.3"]]}
+   :uberjar {:main zoo-event.main}}
   :min-lein-version "2.0.0")
