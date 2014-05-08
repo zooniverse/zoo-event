@@ -38,9 +38,8 @@
       component
       (do (log/info "Closing connection to Kafka topic: " topic)
           (kafka/shutdown consumer)
-          (close! messages)
           (assoc component :messages nil :consumer nil)))))
 
-(defn new-stream
+(defn new-kafka
   [kafka-connect]
   (map->Kafka kafka-connect))

@@ -12,87 +12,55 @@
 
 (defn filter-user-data
   [ev]
-  (dissoc ev :user_name :user_ip))
+  (dissoc ev :user_name :user_ip :male :female :gender))
 
 (defn- ent
   "Creates Korma Entity from event type and project"
-  [{:keys [postgres]} type project]
+  [db type project]
   (-> (create-entity (str "events_" type "_" project))
-      (database postgres)
+      (database (:connection db))
       (transform (fn [obj] (update-in obj [:data] from-json-column)))))
 
-(defn- date-between [w from to]
-  (assoc w :created_at ['between from to]))
+(defn- query
+  [ent params]
+  (select ent
+          (limit 10)))
 
-(def get-date (comp second :created_at))
-
-(defn- params-to-where
-  [w [k v]]
-  (cond
-    (and (contains? w :created_at) (= k :from)) (date-between w (get-date w) (to-sql-date v))
-    (and (contains? w :created_at) (= k :to)) (date-between w (to-sql-date v) (get-date w))
-    (= k :from) (assoc w :created_at ['> (to-sql-date v)])
-    (= k :to) (assoc w :created_at ['< (to-sql-date v)])
-    (= k :female) (assoc w :female ['> v])
-    (= k :male) (assoc w :male ['> v])
-    true (assoc w k v)))
-
-(defn query-from-params
-  [ent {:keys [page per_page] :as params :or {page "1" per_page "10"}}]
-  (let [where-clause (reduce params-to-where {} (dissoc params :page :per_page))
-        page (Integer/parseInt page)
-        per_page (Integer/parseInt per_page)]
-    (select ent
-            (where where-clause)
-            (limit per_page)
-            (order :created_at :DESC)
-            (offset (* (- page 1) per_page)))))
-
-(defn db-response
+(defn- db-response
   [ent params & [mime]]
-  (resp-ok (mapv filter-user-data (query-from-params ent params)) mime))
+  (resp-ok (mapv filter-user-data (query ent params)) 
+           (or mime app-mime)))
 
-(defn- filter-test
-  [ev [k t]]
-  (cond 
-    (vector? t) ((first t) (k ev) (second t))
-    true (= (k ev) t)))
-
-(defn- filter-stream
-  [params]
-  (let [filter-map (reduce params-to-where {} (dissoc params :from :to :page :per_page))]
-    (fn [ev]
-      (every? (partial filter-test ev) filter-map))))
+(def process-event ^{:private true} 
+  (comp #(str % "\n") generate-string filter-user-data :event))
 
 (defn- streaming-response
-  [msgs type project {:keys [params] :as req}]
-  (let [in-chan (chan)
-        out-chan (->> (sub msgs (str type "-" project) in-chan)  
-                      (map< #(get % :event))
-                      (filter< (filter-stream params))
-                      (map< filter-user-data)
-                      (map< (comp #(str % "\n") generate-string)))]
+  [msgs type project req]
+  (let [stream (map process-event msgs)]
     (with-channel req channel
-      (send! channel (resp-ok (<!! out-chan) stream-mime) false)
-      (let [writer (go-loop [msg (<! out-chan)]
-                            (send! channel (resp-ok msg stream-mime) false)
-                            (recur (<! out-chan)))]
-        (on-close channel (fn [status] 
-                            (close! writer) 
-                            (close! in-chan)
-                            (close! out-chan)))))))
+      (send! channel (resp-ok "Stream Start" stream-mime) false)
+      (doseq [m stream] 
+        (send! channel (resp-ok m stream-mime) false)))))
 
 (defn- handle-request
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
     (cond
-      (= (headers "accept") stream-mime) (streaming-response msgs type project req)
+      (= (headers "accept") stream-mime) (streaming-response msgs 
+                                                             type 
+                                                             project 
+                                                             req)
       (= (headers "accept") app-mime) (db-response db-ent (:params req))
       (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
       true (resp-bad-request))))
 
-(defn event-routes
-  [config [type project]]
-  (let [msgs (:stream config) 
-        db-ent (ent config type project)]
+(defn- by-type-project
+  [t p]
+  (fn [{:keys [type project]}]
+    (and (= type t) (= project p))))
+
+(defn event-route
+  [type project db kafka]
+  (let [msgs (filter (by-type-project type project) ((:messages kafka))) 
+        db-ent (ent db type project)]
     (GET (str "/" type "/" project) [:as req] (handle-request msgs db-ent type project))))

@@ -4,7 +4,6 @@
             [zoo-event.events :as ev]
             [clj-time.format :as f]
             [zoo-event.web.resp :refer :all]
-            [clojure.math.combinatorics :refer [cartesian-product]]
             [ring.middleware.json :refer [wrap-json-response]]))
 
 (defn wrap-to-param
@@ -23,10 +22,10 @@
         (update-in req [:params :from] #(f/parse (f/formatters :date-time) %))
         req))))
 
-(defn routes
-  [config]
-  (let [handler (doall (map (partial ev/event-routes config)  
-                            (cartesian-product (:types config) (:projects config))))]
+(defn handler
+  [db kafka projects types]
+  (let [handler (doall (for [p projects t types] 
+                         (ev/event-route t p db kafka)))]
     (-> (apply cmpj/routes handler)
         api
         wrap-json-response 

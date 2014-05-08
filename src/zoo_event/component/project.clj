@@ -1,5 +1,6 @@
 (ns zoo-event.component.project
   (:require [clj-http.client :as http]
+            [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]))
 
 (defrecord Projects [uri ps]
@@ -7,13 +8,15 @@
   (start [component]
     (if ps
       component
-      (assoc component :ps (map :name (http/get uri {:as :json})))))
+      (let [ps (map :name (:body (http/get uri {:as :json})))]
+        (log/info (str "Fetching list of projects from " uri))
+        (assoc component :ps ps))))
   (stop [component]
     (if-not ps
       component
       (assoc component :ps nil))))
 
-(def new-projects
+(defn new-projects
   [uri]
   (map->Projects {:uri uri}))
 

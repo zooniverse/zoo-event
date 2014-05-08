@@ -1,6 +1,7 @@
-(ns zoo-event.component.databse
+(ns zoo-event.component.database
   (:require [korma.db :as db]
             [clojure.tools.logging :as log]
+            [clojure.string :as str]
             [com.stuartsierra.component :as component]))
 
 (defn- uri-to-db-map
@@ -21,12 +22,12 @@
   [{:keys [db-name host port]}]
   (str db-name " at " host ":" port))
 
-(defrecord Database [host port db-name user pass connection]
+(defrecord Database [host port db-name user password connection]
   component/Lifecycle
   (start [component]
     (if connection 
       component 
-      (do (log/info (str "Connecting to " (db-log-name)))
+      (do (log/info (str "Connecting to " (db-log-name component)))
           (assoc component :connection (db-connection {:host host
                                                        :port port
                                                        :db db-name
@@ -35,10 +36,10 @@
   (stop [component]
     (if-not connection
       component
-      (do (log/info (str "Closing connection to " (db-log-name)))
+      (do (log/info (str "Closing connection to " (db-log-name component)))
           (.close connection)
           (dissoc component :connection)))))
 
 (defn new-database
   [jdbc-uri]
-  (map->database (uri-to-db-map jdbc-uri)))
+  (map->Database (uri-to-db-map jdbc-uri)))
