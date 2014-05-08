@@ -1,6 +1,5 @@
 (ns zoo-event.component.kafka
   (:require [clj-kafka.consumer.zk :as kafka]
-            [clojure.core.async :refer [>! chan pub go close!]]
             [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]  
             [cheshire.core :refer [parse-string]]))
@@ -21,11 +20,8 @@
 
 (defn- kafka-stream
   [consumer topic threads]
-  (let [kchan (chan)] 
-    (go (doseq [msg (kafka/messages consumer topic :threads threads)]
-          (log/info "Recieved Message " (:offset msg))
-          (>! kchan (kafka-json-string-to-map msg))))
-    kchan))
+  (let [msgs (map kafka-json-string-to-map (kafka/messages consumer topic :threads threads))]
+    (fn [] msgs)))
 
 (defrecord Kafka [zk-connect group-id topic threads consumer messages]
   component/Lifecycle
