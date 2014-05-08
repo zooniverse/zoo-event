@@ -37,7 +37,6 @@
     (if-not connection
       component
       (do (log/info (str "Closing connection to " (db-log-name component)))
-          (.close connection)
           (dissoc component :connection)))))
 
 (defn new-database

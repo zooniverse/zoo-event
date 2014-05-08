@@ -22,9 +22,19 @@
       (transform (fn [obj] (update-in obj [:data] from-json-column)))))
 
 (defn- query
-  [ent params]
-  (select ent
-          (limit 10)))
+  [ent {:keys [from to per_page page]}]
+  (let [per_page (if per_page (Integer/parseInt per_page) 100)
+        page (if page (Integer/parseInt page) 0)
+        q (select* ent) 
+        q (cond
+            (and from to) (where q (between :created_at [(to-sql-date from) (to-sql-date to)]))
+            from (where q (> :created_at (to-sql-date from)))
+            to (where  q (< :created_at (to-sql-date to)))
+            true q)]
+    (select q
+            (order :created_at :DESC)
+            (limit per_page)
+            (offset (* page per_page)))))
 
 (defn- db-response
   [ent params & [mime]]

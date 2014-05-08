@@ -1,7 +1,7 @@
 (ns zoo-event.component.kafka
   (:require [clj-kafka.consumer.zk :as kafka]
             [clojure.tools.logging :as log]
-            [clojure.core.async :refer [>! chan pub go close!]]
+            [clojure.core.async :refer [>! chan pub go]]
             [com.stuartsierra.component :as component]  
             [cheshire.core :refer [parse-string]]))
 
@@ -41,7 +41,6 @@
       component
       (do (log/info "Closing connection to Kafka topic: " topic)
           (kafka/shutdown consumer)
-          (close! messages)
           (assoc component :messages nil :consumer nil)))))
 
 (defn new-kafka

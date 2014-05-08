@@ -7,6 +7,6 @@
   [& [conf]]
   (let [conf (read-string (slurp conf))
         sys (system conf)]
-    (.addShutdownHook (Runtime/getRuntime) (Thread. (fn [] (println "STOPPING") (stop sys))))  
+    (.addShutdownHook (Runtime/getRuntime) (Thread. (fn [] (stop sys))))  
     (start sys)))
 
