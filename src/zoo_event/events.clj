@@ -5,7 +5,7 @@
             [zoo-event.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
-            [clj-time.coerce :refer [to-sql-date]]
+            [clj-time.coerce :refer [to-sql-time]]
             [pg-json.core :refer :all]
             [compojure.core :refer [GET]]
             [org.httpkit.server :refer [send! with-channel on-close]]))
@@ -27,9 +27,9 @@
         page (if page (Integer/parseInt page) 0)
         q (select* ent) 
         q (cond
-            (and from to) (where q (between :created_at [(to-sql-date from) (to-sql-date to)]))
-            from (where q (> :created_at (to-sql-date from)))
-            to (where  q (< :created_at (to-sql-date to)))
+            (and from to) (where q (between :created_at [(to-sql-time from) (to-sql-time to)]))
+            from (where q (> :created_at (to-sql-time from)))
+            to (where  q (< :created_at (to-sql-time to)))
             true q)]
     (select q
             (order :created_at :DESC)

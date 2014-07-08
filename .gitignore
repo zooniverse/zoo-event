@@ -2,5 +2,4 @@
 target/
 .lein*
 .nrepl-port
-conf*
 *.swp

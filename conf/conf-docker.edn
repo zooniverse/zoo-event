@@ -1,0 +1,2 @@
+{:jdbc "postgres://storm:storm@localhost:5433/events"
+ :zookeeper "zk1.zooniverse.org:2181,zk1.zooniverse.org:2182,zk1.zooniverse.org:2183"}
