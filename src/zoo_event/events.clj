@@ -1,7 +1,7 @@
 (ns zoo-event.events
   (:require [clj-kafka.core :refer [with-resource]]
             [cheshire.core :refer [parse-string generate-string]]
-            [clojure.core.async :refer [go <! <!! map< sub chan close! go-loop >!]]
+            [clojure.core.async :refer [go <! <!! map< sub chan close! go-loop >! timeout alts!]]
             [zoo-event.web.resp :refer :all]
             [korma.core :refer :all]
             [clojure.string :as str]
@@ -44,15 +44,19 @@
 (def process-event ^{:private true} 
   (comp #(str % "\n") generate-string filter-user-data :event))
 
+(defn- message-or-heartbeat
+  [stream]
+  (or (alts! (<! stream) (timeout 30000) "Heartbeat")))
+
 (defn- streaming-response
   [msgs type project req]
   (let [inchan (sub msgs (str type "/" project) (chan)) 
         stream (map< process-event inchan)]
     (with-channel req channel
       (send! channel (resp-ok "Stream Start\n" stream-mime) false)
-      (let [writer (go-loop [msg (<! stream)]
+      (let [writer (go-loop [msg (message-or-heartbeat stream)]
                             (send! channel (resp-ok msg stream-mime) false)
-                            (recur (<! stream)))]
+                            (recur (message-or-heartbeat stream)))]
         (on-close channel (fn [status] 
                             (close! writer)
                             (close! stream)
