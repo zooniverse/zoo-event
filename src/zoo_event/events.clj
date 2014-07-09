@@ -67,10 +67,7 @@
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
     (cond
-      (= (headers "accept") stream-mime) (streaming-response msgs 
-                                                             type 
-                                                             project 
-                                                             req)
+      (= (headers "accept") stream-mime) (streaming-response msgs type project req)
       (= (headers "accept") app-mime) (db-response db-ent (:params req))
       (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
       true (resp-bad-request))))
