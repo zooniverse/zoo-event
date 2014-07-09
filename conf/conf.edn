@@ -1,0 +1,7 @@
+{:jdbc "postgres://storm:storm@localhost:5432/events"
+ :kafka-config {:zk-connect "zk1.zooniverse.org:2181,zk2.zooniverse.org:2182,zk3.zooniverse.org:2183"
+                :group-id "zoo-event-local-test"
+                :topic "events"
+                :threads 4}
+ :project-uri "https://api.zooniverse.org/projects/list"
+ :types ["classifications"]}

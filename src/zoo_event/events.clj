@@ -8,7 +8,7 @@
             [clj-time.coerce :refer [to-sql-time]]
             [pg-json.core :refer :all]
             [compojure.core :refer [GET]]
-            [org.httpkit.server :refer [send! with-channel on-close]]))
+            [org.httpkit.server :refer [send! with-channel on-close open?]]))
 
 (defn filter-user-data
   [ev]
@@ -46,7 +46,7 @@
 
 (defn- message-or-heartbeat
   [stream]
-  (or (alts! (<! stream) (timeout 30000) "Heartbeat")))
+  (go (or (first (alts! [stream (timeout 30000)] :priority true)) "Heartbeat\n")))
 
 (defn- streaming-response
   [msgs type project req]
@@ -54,9 +54,10 @@
         stream (map< process-event inchan)]
     (with-channel req channel
       (send! channel (resp-ok "Stream Start\n" stream-mime) false)
-      (let [writer (go-loop [msg (message-or-heartbeat stream)]
+      (let [writer (go-loop [msg (<! (message-or-heartbeat stream))]
                             (send! channel (resp-ok msg stream-mime) false)
-                            (recur (message-or-heartbeat stream)))]
+                            (when (open? channel)
+                              (recur (<! (message-or-heartbeat stream)))))]
         (on-close channel (fn [status] 
                             (close! writer)
                             (close! stream)
