@@ -1,4 +1,4 @@
-(defproject zoo-event "1.0.2"
+(defproject zoo-event "1.1.0"
   :description "Live Zooniverse Classifications"
   :url "http://github.com/zooniverse/zoo-events"
   :license {:name "Apache Public License v2"
