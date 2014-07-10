@@ -39,8 +39,10 @@
 
 (defn handler
   [db kafka projects types]
-  (let [handler (doall (for [p projects t types] 
-                         (ev/event-route t p db kafka)))]
+  (let [handler (concat (doall (for [p projects t types] 
+                                 (ev/project-event-route t p db kafka)))
+                        (doall (for [t types]
+                                 (ev/global-event-route t kafka))))]
     (-> (apply cmpj/routes handler)
         wrap-websockets
         wrap-to-param

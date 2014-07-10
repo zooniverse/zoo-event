@@ -24,7 +24,8 @@
   (let [msgs (kafka/messages consumer topic :threads threads)
         kchan (chan)]
     (go (doseq [m msgs] (>! kchan (kafka-json-string-to-map m))))
-    (pub kchan (fn [{:keys [project type]}] (str type "/" project)))))
+    [(pub kchan (fn [{:keys [project type]}] (str type "/" project)))
+     (pub kchan (fn [{:keys [type]}] (str type)))]))
 
 (defrecord Kafka [zk-connect group-id topic threads consumer messages]
   component/Lifecycle
@@ -33,9 +34,9 @@
       component
       (let [conf (kafka-config zk-connect group-id)
             c (kafka/consumer conf)
-            ms (kafka-stream c topic threads)]
+            [project-msgs msgs] (kafka-stream c topic threads)]
         (log/info "Connecting to Kafka topic: " topic)
-        (assoc component :consumer c :messages ms))))
+        (assoc component :consumer c :messages msgs :project-messages project-msgs))))
   (stop [component]
     (if-not messages 
       component

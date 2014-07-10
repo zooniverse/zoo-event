@@ -49,8 +49,8 @@
   (go (or (first (alts! [stream (timeout 30000)] :priority true)) "Heartbeat\n")))
 
 (defn- streaming-response
-  [msgs type project req]
-  (let [inchan (sub msgs (str type "/" project) (chan)) 
+  [msgs msg-key req]
+  (let [inchan (sub msgs msg-key (chan)) 
         stream (map< process-event inchan)]
     (with-channel req channel
       (send! channel (resp-ok "Stream Start\n" stream-mime) false)
@@ -63,17 +63,29 @@
                             (close! stream)
                             (close! inchan)))))))
 
-(defn- handle-request
+(defn- handle-project-request
   [msgs db-ent type project]
   (fn [{:keys [headers] :as req}]
     (cond
-      (= (headers "accept") stream-mime) (streaming-response msgs type project req)
+      (= (headers "accept") stream-mime) (streaming-response msgs (str type "/" project) req)
       (= (headers "accept") app-mime) (db-response db-ent (:params req))
       (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
       true (resp-bad-request))))
 
-(defn event-route
+(defn- handle-global-request
+  [msgs type]
+  (fn [{:keys [headers] :as req}]
+    (cond
+      (= (headers "accept") stream-mime) (streaming-response msgs type req)
+      true (resp-bad-request))))
+
+(defn project-event-route
   [type project db kafka]
-  (let [msgs (:messages kafka) 
+  (let [msgs (:project-messages kafka) 
         db-ent (ent db type project)]
-    (GET (str "/" type "/" project) [:as req] (handle-request msgs db-ent type project))))
+    (GET (str "/" type "/" project) [:as req] (handle-project-request msgs db-ent type project))))
+
+(defn global-event-route
+  [type kafka]
+  (let [msgs (:messages kafka)]
+    (GET (str "/" type) [:as req] (handle-global-request msgs type))))
