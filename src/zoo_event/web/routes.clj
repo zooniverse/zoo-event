@@ -28,7 +28,9 @@
   [handler]
   (fn [req]
     (handler
-      (if (= (get-in req [:headers "upgrade"] "websocket"))
+      (if (and (= (get-in req [:headers "upgrade"]) "websocket")
+               (not (or (= (get-in req [:headers "accept"]) app-mime)
+                        (= (get-in req [:headers "accept"]) "application/json"))))
         (update-in req [:headers] assoc "accept" stream-mime)
         req))))
 
