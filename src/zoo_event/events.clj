@@ -24,16 +24,26 @@
                         (where {:project project}))
              (str "events_" type "_" project))))
 
+(defn- date-query
+  [query from to]
+  (cond
+    (and from to) (where query (between :created_at [(to-sql-time from) (to-sql-time to)]))
+    from (where query (> :created_at (to-sql-time from)))
+    to (where  query (< :created_at (to-sql-time to)))
+    true query))
+
+(defn- str-to-int
+  [string & [default]]
+  (if string
+    (Integer/parseInt string)
+    (or default 0)))
+
 (defn- query
   [ent {:keys [from to per_page page]}]
-  (let [per_page (if per_page (Integer/parseInt per_page) 100)
-        page (if page (Integer/parseInt page) 0)
-        q (select* ent) 
-        q (cond
-            (and from to) (where q (between :created_at [(to-sql-time from) (to-sql-time to)]))
-            from (where q (> :created_at (to-sql-time from)))
-            to (where  q (< :created_at (to-sql-time to)))
-            true q)]
+  (let [per_page (str-to-int per_page 100)
+        page (str-to-int page)
+        q (-> (select* ent)
+              (date-query from to))]
     (select q
             (order :created_at :DESC)
             (limit per_page)
@@ -41,8 +51,9 @@
 
 (defn- db-response
   [ent params & [mime]]
-  (resp-ok (mapv filter-user-data (query ent params)) 
-           (or mime app-mime)))
+  (let [result (query ent params)] 
+    (resp-ok (mapv filter-user-data result)
+             (or mime app-mime))))
 
 (def process-event ^{:private true} 
   (comp #(str % "\n") generate-string filter-user-data :event))
