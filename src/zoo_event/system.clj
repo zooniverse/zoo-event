@@ -8,10 +8,10 @@
 
 (defn system
   "Returns a new instance of the whole application"
-  [{:keys [port jdbc kafka-config project-uri types]
-    :or {port 8080}}]
+  [{:keys [events port jdbc kafka-config project-uri types]
+    :or {port 8080 events ["classifications"]}}]
   (component/system-map
-    :db (new-database jdbc)
+    :db (new-database events jdbc)
     :kafka (new-kafka kafka-config)
     :projects (new-projects project-uri)
     :app (component/using 

@@ -6,8 +6,8 @@
             [korma.core :refer :all]
             [clojure.string :as str]
             [clj-time.coerce :refer [to-sql-time]]
-            [pg-json.core :refer :all]
             [compojure.core :refer [GET]]
+            [zoo-event.component.database :refer [json-transformer]]
             [org.httpkit.server :refer [send! with-channel on-close open?]]))
 
 (defn filter-user-data
@@ -16,10 +16,13 @@
 
 (defn- ent
   "Creates Korma Entity from event type and project"
-  [db type project]
+  [{:keys [db-ents connection]} type project]
   (-> (create-entity (str "events_" type "_" project))
-      (database (:connection db))
-      (transform (fn [obj] (update-in obj [:data] from-json-column)))))
+      (database connection)
+      (transform json-transformer)
+      (table (subselect (db-ents type)
+                        (where {:project project}))
+             (str "events_" type "_" project))))
 
 (defn- query
   [ent {:keys [from to per_page page]}]
