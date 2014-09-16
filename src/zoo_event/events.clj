@@ -27,10 +27,10 @@
 (defn- date-query
   [query from to]
   (cond
-    (and from to) (where query (between :created_at [(to-sql-time from) (to-sql-time to)]))
-    from (where query (> :created_at (to-sql-time from)))
-    to (where  query (< :created_at (to-sql-time to)))
-    true query))
+   (and from to) (where query (between :created_at [(to-sql-time from) (to-sql-time to)]))
+   from (where query (> :created_at (to-sql-time from)))
+   to (where  query (< :created_at (to-sql-time to)))
+   true query))
 
 (defn- str-to-int
   [string & [default]]
@@ -69,35 +69,41 @@
     (with-channel req channel
       (send! channel (resp-ok "Stream Start\n" stream-mime) false)
       (let [writer (go-loop [msg (<! (message-or-heartbeat stream))]
-                            (send! channel (resp-ok msg stream-mime) false)
-                            (when (open? channel)
-                              (recur (<! (message-or-heartbeat stream)))))]
+                     (send! channel (resp-ok msg stream-mime) false)
+                     (when (open? channel)
+                       (recur (<! (message-or-heartbeat stream)))))]
         (on-close channel (fn [status] 
                             (close! writer)
                             (close! stream)
                             (close! inchan)))))))
 
 (defn- handle-project-request
-  [msgs db-ent type project]
-  (fn [{:keys [headers] :as req}]
+  [type kafka db]
+  (fn [project {:keys [headers] :as req}]
     (cond
-      (= (headers "accept") stream-mime) (streaming-response msgs (str type "/" project) req)
-      (= (headers "accept") app-mime) (db-response db-ent (:params req))
-      (= (headers "accept") "application/json") (db-response db-ent (:params req) "application/json")
-      true (resp-bad-request))))
+     (= (headers "accept") stream-mime)
+     (streaming-response (:project-messages kafka)
+                         (str type "/" project)
+                         req)
+     (= (headers "accept") app-mime)
+     (db-response (ent db type project)
+                  (:params req))
+     (= (headers "accept") "application/json")
+     (db-response (ent db type project)
+                  (:params req)
+                  "application/json")
+     true (resp-bad-request))))
 
 (defn- handle-global-request
   [msgs type]
   (fn [{:keys [headers] :as req}]
     (cond
-      (= (headers "accept") stream-mime) (streaming-response msgs type req)
-      true (resp-bad-request))))
+     (= (headers "accept") stream-mime) (streaming-response msgs type req)
+     true (resp-bad-request))))
 
 (defn project-event-route
-  [type project db kafka]
-  (let [msgs (:project-messages kafka) 
-        db-ent (ent db type project)]
-    (GET (str "/" type "/" project) [:as req] (handle-project-request msgs db-ent type project))))
+  [type db kafka]
+  (GET (str "/" type "/:project") [project :as req] ((handle-project-request type kafka db) project req)))
 
 (defn global-event-route
   [type kafka]

@@ -1,3 +1,4 @@
+
 (ns zoo-event.web.routes
   (:require [compojure.core :as cmpj]
             [compojure.handler :refer [api]]
@@ -41,8 +42,8 @@
 
 (defn handler
   [db kafka projects types]
-  (let [handler (concat (doall (for [p projects t types] 
-                                 (ev/project-event-route t p db kafka)))
+  (let [handler (concat (doall (for [t types] 
+                                 (ev/project-event-route t db kafka)))
                         (doall (for [t types]
                                  (ev/global-event-route t kafka))))]
     (-> (apply cmpj/routes handler)
