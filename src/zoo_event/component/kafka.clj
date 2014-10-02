@@ -8,7 +8,7 @@
 (defn uuid [] (str (java.util.UUID/randomUUID)))
 
 (defn- kafka-config
-  [zk group-id]
+  [zk]
   {"zookeeper.connect" zk 
    "group.id" uuid
    "auto.offset.reset" "largest"
@@ -29,12 +29,12 @@
     [(pub kchan (fn [{:keys [project type]}] (str type "/" project)))
      (pub kchan (fn [{:keys [type]}] (str type)))]))
 
-(defrecord Kafka [zk-connect group-id topic threads consumer messages]
+(defrecord Kafka [zk-connect topic threads consumer messages]
   component/Lifecycle
   (start [component]
     (if messages 
       component
-      (let [conf (kafka-config zk-connect group-id)
+      (let [conf (kafka-config zk-connect)
             c (kafka/consumer conf)
             [project-msgs msgs] (kafka-stream c topic threads)]
         (log/info "Connecting to Kafka topic: " topic)
