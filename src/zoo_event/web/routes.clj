@@ -45,7 +45,8 @@
   (let [handler (concat (doall (for [t types] 
                                  (ev/project-event-route t db kafka)))
                         (doall (for [t types]
-                                 (ev/global-event-route t kafka))))]
+                                 (ev/global-event-route t kafka)))
+                        (GET "/pingdom" [] (resp-ok "OK" "text/plain")))]
     (-> (apply cmpj/routes handler)
         wrap-websockets
         wrap-to-param
