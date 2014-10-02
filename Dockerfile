@@ -9,7 +9,7 @@ RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -q openjdk-7-jre-headless supervisor
 RUN mkdir -p /opt/zoo-event
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-ADD target/zoo-event-2.0.3-standalone.jar /opt/zoo-event/zoo-event.jar
+ADD target/zoo-event-2.0.4-standalone.jar /opt/zoo-event/zoo-event.jar
 
 EXPOSE 8080
 
