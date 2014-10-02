@@ -5,10 +5,12 @@
             [com.stuartsierra.component :as component]  
             [cheshire.core :refer [parse-string]]))
 
+(defn uuid [] (str (java.util.UUID/randomUUID)))
+
 (defn- kafka-config
   [zk group-id]
   {"zookeeper.connect" zk 
-   "group.id" group-id 
+   "group.id" uuid
    "auto.offset.reset" "largest"
    "auto.commit.enable" "true"})
 
