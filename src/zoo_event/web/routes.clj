@@ -29,6 +29,16 @@
   (fn [req]
     (update-in (handler req) [:headers] assoc "Access-Control-Allow-Origin" "*")))
 
+(defn wrap-websockets
+  [handler]
+  (fn [req]
+    (handler
+      (if (and (= (get-in req [:headers "upgrade"]) "websocket")
+               (not (or (= (get-in req [:headers "accept"]) app-mime)
+                        (= (get-in req [:headers "accept"]) "application/json"))))
+        (update-in req [:headers] assoc "accept" stream-mime)
+        req))))
+
 (defn handler
   [db kafka]
   (let [handler (cmpj/routes
@@ -38,6 +48,7 @@
                  (cmpj/GET "/:type/:project" [type project :as req]
                            ((ev/handle-project-request kafka db) type project req)))]
     (-> (wrap-to-param handler)
+        wrap-websockets
         wrap-from-param 
         wrap-json-response 
         wrap-cors
