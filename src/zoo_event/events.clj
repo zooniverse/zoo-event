@@ -77,9 +77,9 @@
                             (close! stream)
                             (close! inchan)))))))
 
-(defn- handle-project-request
-  [type kafka db]
-  (fn [project {:keys [headers] :as req}]
+(defn handle-project-request
+  [kafka db]
+  (fn [type project {:keys [headers] :as req}]
     (cond
      (= (headers "accept") stream-mime)
      (streaming-response (:project-messages kafka)
@@ -94,18 +94,9 @@
                   "application/json")
      true (resp-bad-request))))
 
-(defn- handle-global-request
+(defn handle-global-request
   [msgs type]
   (fn [{:keys [headers] :as req}]
     (cond
      (= (headers "accept") stream-mime) (streaming-response msgs type req)
      true (resp-bad-request))))
-
-(defn project-event-route
-  [type db kafka]
-  (GET (str "/" type "/:project") [project :as req] ((handle-project-request type kafka db) project req)))
-
-(defn global-event-route
-  [type kafka]
-  (let [msgs (:messages kafka)]
-    (GET (str "/" type) [:as req] (handle-global-request msgs type))))

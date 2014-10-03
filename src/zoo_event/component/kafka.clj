@@ -10,7 +10,7 @@
 (defn- kafka-config
   [zk]
   {"zookeeper.connect" zk 
-   "group.id" uuid
+   "group.id" (uuid)
    "auto.offset.reset" "largest"
    "auto.commit.enable" "true"})
 

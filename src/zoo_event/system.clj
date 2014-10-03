@@ -13,6 +13,6 @@
     :db (new-database events jdbc)
     :kafka (new-kafka kafka-config)
     :app (component/using 
-           (new-app port types r/handler)
+           (new-app port r/handler)
            [:db :kafka])))
 

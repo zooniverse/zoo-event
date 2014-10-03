@@ -3,12 +3,12 @@
             [clojure.tools.logging :as log]
             [org.httpkit.server :refer [run-server]]))
 
-(defrecord App [db kafka projects types handler port server]
+(defrecord App [db kafka handler port server]
   component/Lifecycle
   (start [component]
     (if server
       component
-      (let [s (run-server (handler db kafka (:ps projects) types) 
+      (let [s (run-server (handler db kafka) 
                           {:port port :json? false})] 
         (log/info (str "Starting Server on port " port))
         (assoc component :server s))))
@@ -20,5 +20,5 @@
           (assoc component server nil)))))
 
 (defn new-app
-  [port types handler]
-  (map->App {:port port :types types :handler handler}))
+  [port handler]
+  (map->App {:port port :handler handler}))

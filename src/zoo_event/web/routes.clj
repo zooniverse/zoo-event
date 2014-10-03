@@ -1,4 +1,3 @@
-
 (ns zoo-event.web.routes
   (:require [compojure.core :as cmpj]
             [compojure.handler :refer [api]]
@@ -11,29 +10,19 @@
   [handler]
   (fn [req] 
     (handler
-      (if (get-in req [:params :to]) 
-        (-> (update-in req [:params :to] #(Long/parseLong %))
-            (update-in [:params :to] c/from-long))
-        req))))
+     (if (get-in req [:params :to]) 
+       (-> (update-in req [:params :to] #(Long/parseLong %))
+           (update-in [:params :to] c/from-long))
+       req))))
 
 (defn wrap-from-param
   [handler]
   (fn [req]
     (handler 
-      (if (get-in req [:params :from]) 
-        (-> (update-in req [:params :from] #(Long/parseLong %))
-            (update-in [:params :from] c/from-long))
-        req))))
-
-(defn wrap-websockets
-  [handler]
-  (fn [req]
-    (handler
-      (if (and (= (get-in req [:headers "upgrade"]) "websocket")
-               (not (or (= (get-in req [:headers "accept"]) app-mime)
-                        (= (get-in req [:headers "accept"]) "application/json"))))
-        (update-in req [:headers] assoc "accept" stream-mime)
-        req))))
+     (if (get-in req [:params :from]) 
+       (-> (update-in req [:params :from] #(Long/parseLong %))
+           (update-in [:params :from] c/from-long))
+       req))))
 
 (defn wrap-cors
   [handler]
@@ -41,15 +30,14 @@
     (update-in (handler req) [:headers] assoc "Access-Control-Allow-Origin" "*")))
 
 (defn handler
-  [db kafka projects types]
-  (let [handler (concat (doall (for [t types] 
-                                 (ev/project-event-route t db kafka)))
-                        (doall (for [t types]
-                                 (ev/global-event-route t kafka)))
-                        (cmpj/GET "/pingdom" [] (resp-ok "OK" "text/plain")))]
-    (-> (apply cmpj/routes handler)
-        wrap-websockets
-        wrap-to-param
+  [db kafka]
+  (let [handler (cmpj/routes
+                 (cmpj/GET "/pingdom" [] (resp-ok "OK" "text/plain"))
+                 (cmpj/GET "/:type" [type :as req]
+                           (ev/handle-global-request (:messages kafka) type))
+                 (cmpj/GET "/:type/:project" [type project :as req]
+                           ((ev/handle-project-request kafka db) type project req)))]
+    (-> (wrap-to-param handler)
         wrap-from-param 
         wrap-json-response 
         wrap-cors
