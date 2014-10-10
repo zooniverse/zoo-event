@@ -83,7 +83,6 @@
 (defn handle-project-request
   [kafka db]
   (fn [req type & [project]]
-    (println (get-in req [:headers "accept"]))
     (condp = (get-in req [:headers "accept"])
       stream-mime (streaming-response kafka req type project)
       app-mime (db-response db [type project] (:params req))

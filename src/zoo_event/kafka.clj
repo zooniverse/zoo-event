@@ -21,8 +21,6 @@
                      (comp parse-fn transducer)
                      parse-fn)
         kchan (chan 1 transducer)]
-    (println config topic threads)
-    
     (go (with-resource [c (consumer config)]
           shutdown
           (loop [[m & msgs] (messages c topic :threads threads)]
