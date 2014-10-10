@@ -2,7 +2,7 @@
 
 (def stream-mime "application/vnd.zooevents.stream.v1+json")
 (def app-mime "application/vnd.zooevents.v1+json")
- 
+
 (defn resp-ok
   [body & [content-type]]
   {:status 200
@@ -14,4 +14,9 @@
   {:status 400
    :headers {"Content-Type" app-mime}
    :body {"status" "Bad Request"}})
- 
+
+(defn unsupported-media-type
+  [] 
+  {:status 415
+   :headers {"Content-Type" app-mime}
+   :body {"status" "Unsupported Media Type"}})

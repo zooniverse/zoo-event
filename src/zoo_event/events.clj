@@ -1,28 +1,28 @@
 (ns zoo-event.events
-  (:require [clj-kafka.core :refer [with-resource]]
-            [cheshire.core :refer [parse-string generate-string]]
-            [clojure.core.async :refer [go <! <!! map< sub chan close! go-loop >! timeout alts!]]
+  (:require [zoo-event.kafka :as kafka]
+            [cheshire.core :refer [generate-string]]
+            [clojure.core.async :refer [go <! chan close! go-loop >! timeout alts!]]
             [zoo-event.web.resp :refer :all]
             [korma.core :refer :all]
-            [clojure.string :as str]
             [clj-time.coerce :refer [to-sql-time]]
-            [compojure.core :refer [GET]]
             [zoo-event.component.database :refer [json-transformer]]
             [org.httpkit.server :refer [send! with-channel on-close open?]]))
 
-(defn filter-user-data
+(defn remove-user-data
   [ev]
   (dissoc ev :user_name :user_ip :male :female :gender))
 
 (defn- ent
   "Creates Korma Entity from event type and project"
   [{:keys [db-ents connection]} type project]
-  (-> (create-entity (str "events_" type "_" project))
-      (database connection)
-      (transform json-transformer)
-      (table (subselect (db-ents type)
-                        (where {:project project}))
-             (str "events_" type "_" project))))
+  (if project
+    (-> (create-entity (str "events_" type "_" project))
+        (database connection)
+        (transform json-transformer)
+        (table (subselect (db-ents type)
+                          (where {:project project}))
+               (str "events_" type "_" project)))
+    (db-ents type)))
 
 (defn- date-query
   [query from to]
@@ -50,22 +50,26 @@
             (offset (* page per_page)))))
 
 (defn- db-response
-  [ent params & [mime]]
-  (let [result (query ent params)] 
-    (resp-ok (mapv filter-user-data result)
+  [db [type & [project]] params & [mime]]
+  (let [result (query (ent db type project) params)] 
+    (resp-ok (mapv remove-user-data result)
              (or mime app-mime))))
 
 (def process-event ^{:private true} 
-  (comp #(str % "\n") generate-string filter-user-data :event))
+  (comp #(str % "\n") generate-string remove-user-data :event))
 
 (defn- message-or-heartbeat
   [stream]
   (go (or (first (alts! [stream (timeout 30000)] :priority true)) "Heartbeat\n")))
 
 (defn- streaming-response
-  [msgs msg-key req]
-  (let [inchan (sub msgs msg-key (chan)) 
-        stream (map< process-event inchan)]
+  [kafka req type project]
+  (let [type-filter (filter #(= (:type %) type))
+        project-filter (if project
+                         (filter #(= (:project %) project))
+                         (map identity))
+        transducer (comp type-filter project-filter (map process-event))
+        stream (kafka/stream kafka transducer)]
     (with-channel req channel
       (send! channel (resp-ok "Stream Start\n" stream-mime) false)
       (let [writer (go-loop [msg (<! (message-or-heartbeat stream))]
@@ -74,29 +78,16 @@
                        (recur (<! (message-or-heartbeat stream)))))]
         (on-close channel (fn [status] 
                             (close! writer)
-                            (close! stream)
-                            (close! inchan)))))))
+                            (close! stream)))))))
 
 (defn handle-project-request
   [kafka db]
-  (fn [type project {:keys [headers] :as req}]
-    (cond
-     (= (headers "accept") stream-mime)
-     (streaming-response (:project-messages kafka)
-                         (str type "/" project)
-                         req)
-     (= (headers "accept") app-mime)
-     (db-response (ent db type project)
-                  (:params req))
-     (= (headers "accept") "application/json")
-     (db-response (ent db type project)
-                  (:params req)
-                  "application/json")
-     true (resp-bad-request))))
-
-(defn handle-global-request
-  [msgs type]
-  (fn [{:keys [headers] :as req}]
-    (cond
-     (= (headers "accept") stream-mime) (streaming-response msgs type req)
-     true (resp-bad-request))))
+  (fn [req type & [project]]
+    (println (get-in req [:headers "accept"]))
+    (condp = (get-in req [:headers "accept"])
+      stream-mime (streaming-response kafka req type project)
+      app-mime (db-response db [type project] (:params req))
+      "application/json" (db-response db [type project]
+                                      (:params req)
+                                      "application/json")
+      (unsupported-media-type))))

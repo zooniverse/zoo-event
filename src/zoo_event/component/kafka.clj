@@ -1,50 +1,27 @@
 (ns zoo-event.component.kafka
-  (:require [clj-kafka.consumer.zk :as kafka]
-            [clojure.tools.logging :as log]
-            [clojure.core.async :refer [>! chan pub go]]
-            [com.stuartsierra.component :as component]  
-            [cheshire.core :refer [parse-string]]))
+  (:require [clojure.tools.logging :as log]
+            [com.stuartsierra.component :as component]))
 
-(defn uuid [] (str (java.util.UUID/randomUUID)))
 
 (defn- kafka-config
   [zk]
   {"zookeeper.connect" zk 
-   "group.id" (uuid)
    "auto.offset.reset" "largest"
-   "auto.commit.enable" "true"})
+   "auto.commit.enable" "false"})
 
-(defn- kafka-json-string-to-map
-  [msg]
-  (parse-string (->> (:value msg)
-                     (map #(char (bit-and % 255))) 
-                     (apply str))
-                true))
-
-(defn- kafka-stream
-  [consumer topic threads]
-  (let [msgs (kafka/messages consumer topic :threads threads)
-        kchan (chan)]
-    (go (doseq [m msgs] (>! kchan (kafka-json-string-to-map m))))
-    [(pub kchan (fn [{:keys [project type]}] (str type "/" project)))
-     (pub kchan (fn [{:keys [type]}] (str type)))]))
-
-(defrecord Kafka [zk-connect topic threads consumer messages]
+(defrecord Kafka [zk-connect config topic threads consumer messages]
   component/Lifecycle
   (start [component]
     (if messages 
       component
-      (let [conf (kafka-config zk-connect)
-            c (kafka/consumer conf)
-            [project-msgs msgs] (kafka-stream c topic threads)]
-        (log/info "Connecting to Kafka topic: " topic)
-        (assoc component :consumer c :messages msgs :project-messages project-msgs))))
+      (let [conf (kafka-config zk-connect)]
+        (log/info "Load Kafka config")
+        (assoc component :config conf))))
   (stop [component]
-    (if-not messages 
+    (if-not config
       component
-      (do (log/info "Closing connection to Kafka topic: " topic)
-          (kafka/shutdown consumer)
-          (assoc component :messages nil :consumer nil)))))
+      (do (log/info "Closing connection to Kafka")
+          (assoc component :config nil)))))
 
 (defn new-kafka
   [kafka-connect]

@@ -33,20 +33,19 @@
   [handler]
   (fn [req]
     (handler
-      (if (and (= (get-in req [:headers "upgrade"]) "websocket")
-               (not (or (= (get-in req [:headers "accept"]) app-mime)
-                        (= (get-in req [:headers "accept"]) "application/json"))))
-        (update-in req [:headers] assoc "accept" stream-mime)
-        req))))
+     (if (= (get-in req [:headers "upgrade"]) "websocket")
+       (update-in req [:headers] assoc "accept" stream-mime)
+       req))))
 
 (defn handler
   [db kafka]
-  (let [handler (cmpj/routes
+  (let [req-handler (ev/handle-project-request kafka db)
+        handler (cmpj/routes
                  (cmpj/GET "/pingdom" [] (resp-ok "OK" "text/plain"))
                  (cmpj/GET "/:type" [type :as req]
-                           (ev/handle-global-request (:messages kafka) type))
+                           (req-handler req type))
                  (cmpj/GET "/:type/:project" [type project :as req]
-                           ((ev/handle-project-request kafka db) type project req)))]
+                           (req-handler req type project)))]
     (-> (wrap-to-param handler)
         wrap-websockets
         wrap-from-param 
